@@ -18,8 +18,8 @@ async def get_instruments(client):
     try:
         instruments_response = await client.instruments.futures()
         return instruments_response.instruments
-    except AioRequestError as e:
-        print(f"Error fetching instruments: {e.details}")
+    except AioRequestError as exc:
+        print(f"Error fetching instruments: {exc.details}")
         return None
 
 
@@ -61,8 +61,8 @@ async def market_data_stream(uid):
 
         except AioRequestError as exc:
             print(f"Error in market data stream: {exc.details}")
-        except Exception as e:
-            print(f"Unexpected error in market data stream: {e}")
+        except Exception as exc:
+            print(f"Unexpected error in market data stream: {exc}")
 
 
 async def main():
@@ -99,5 +99,5 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         print("Program interrupted.")
-    except Exception as e:
-        print(f"Application error: {e}")
+    except Exception as exc:
+        print(f"Application error: {exc}")
