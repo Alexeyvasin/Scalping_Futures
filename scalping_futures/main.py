@@ -126,20 +126,8 @@ class ScalpingBot:
     def start(self):
         """Запуск бота: подписка на минутные свечи и обработка данных"""
         self.trading_active = True
-        with self.client as client:
+        with Client(TOKEN) as client:
             market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
-            # Подписываемся на 1-минутные свечи по выбранному FIGI
-            # subscribe_request = MarketDataStreamRequest(
-            #     subscribe_candles_request=SubscribeCandlesRequest(
-            #         subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
-            #         instruments=[
-            #             SubscribeCandlesRequestInstrument(
-            #                 figi=self.figi,
-            #                 interval=CandleInterval.CANDLE_INTERVAL_1_MIN
-            #             )
-            #         ]
-            #     )
-            # )
             subscribe_request: MarketDataRequest = MarketDataRequest(
                 subscribe_candles_request=SubscribeCandlesRequest(
                     subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
@@ -158,16 +146,21 @@ class ScalpingBot:
 
             # Получаем поток MarketDataResponse
             while self.trading_active:
-                for marketdata in market_data_stream:
-                    if marketdata.candle is not None:
-                        candle = marketdata.candle
-                        self.on_new_candle(candle)
+                try:
+                    for marketdata in market_data_stream:
+                        if marketdata.candle is not None:
+                            candle = marketdata.candle
+                            self.on_new_candle(candle)
 
                     # Можно обрабатывать и другие типы сообщений (orderbook, trades и т.д.), если необходимо
                     # if marketdata.orderbook:
                     #     ...
                     # if marketdata.trades:
                     #     ...
+                except Exception as exc_:
+                    print(f"Error in stream processing: {type(exc_)} {exc_}")
+                    # You might want to add a sleep or retry logic here
+                    # if the error is recoverable
 
     def on_new_candle(self, candle):
         """Обработка каждой новой минутной свечи"""
@@ -178,9 +171,8 @@ class ScalpingBot:
         low_price = self._quotation_to_float(candle.low)
         volume_sales = candle.volume
 
-
         # Время свечи (UTC). При желании можно конвертировать в локальное
-        current_candle_time = candle.time.ToDatetime()
+        current_candle_time = candle.time  # already datetime object
 
         # Добавляем/обновляем запись о свече в self.df
         # Так как свеча может обновляться несколько раз в течение минуты, проверим: последний индекс тот же?
@@ -191,6 +183,7 @@ class ScalpingBot:
             ]
         else:
             # Создаём новую запись
+            # Here is a fix
             self.df.loc[current_candle_time] = [open_price, close_price, high_price, low_price, volume_sales]
 
         # Удаляем старые записи, если хотим ограничить размер
