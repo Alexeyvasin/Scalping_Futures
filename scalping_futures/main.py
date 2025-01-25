@@ -1,40 +1,67 @@
+from os   import getenv
+from dotenv import load_dotenv
 import pandas as pd
 import numpy as np
 import datetime
 
+
 # Из tinkoff.invest импортируем нужные классы и функции
+# from tinkoff.invest import (
+#     Client,
+#     CandleInterval,
+#     OrderDirection,
+#     OrderType,
+#     MarketDataRequest,
+#     MarketDataServerSideStream,
+#     MarketDataResponse,
+#     Quotation,
+#     InstrumentIdType,
+#     OrderExecutionReportStatus,
+#     OrderState,
+#     PositionsResponse,
+# )
+from tinkoff.invest.utils import now
 from tinkoff.invest import (
     Client,
     CandleInterval,
     OrderDirection,
     OrderType,
-    MarketDataRequest,
-    MarketDataServerSideStream,
-    MarketDataResponse,
     Quotation,
     InstrumentIdType,
     OrderExecutionReportStatus,
     OrderState,
     PositionsResponse,
-)
-from tinkoff.invest.services import MarketDataStreamService, OrdersService
-from tinkoff.invest.request import (
-    MarketDataStreamRequest,
+    MarketDataRequest,
     SubscribeCandlesRequest,
-    SubscribeCandlesRequestInstrument,
     SubscriptionAction,
     PostOrderRequest,
+    CandleInstrument,
+    SubscriptionInterval,
 )
+from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
-TOKEN = "ВАШ_API_ТОКЕН"  # Токен с нужными правами (Full Access / торговые операции)
-ACCOUNT_ID = "ВАШ_ACCOUNT_ID"  # Номер брокерского счёта
-FIGI_IMOEXF = "FUT_IMOEX_CODE" # FIGI фьючерса на IMOEX (уточните в Тинькофф или через инструменты API)
+from tinkoff.invest.schemas import Candle, HistoricCandle
+
+from tinkoff.invest.services import MarketDataStreamService, OrdersService
+# from tinkoff.invest.request import (
+#     MarketDataStreamRequest,
+#     SubscribeCandlesRequest,
+#     SubscribeCandlesRequestInstrument,
+#     SubscriptionAction,
+#     PostOrderRequest,
+# )
+load_dotenv()
+
+TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
+ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
+FIGI_IMOEXF = getenv('FIGI') # FIGI фьючерса на IMOEX (уточните в Тинькофф или через инструменты API)
 
 COMMISSION_RATE = 0.00025  # 0,025% = 0.00025 за сделку. Учтём round-turn = 0.0005, если хотим "в обе стороны"
 SPREAD_TICKS = 2           # Условно считаем 2 тика средним спредом (примеры!). Уточните шаг цены фьючерса!
 
 class ScalpingBot:
     def __init__(self, token, account_id, figi):
+        self.trading_active = None
         self.token = token
         self.account_id = account_id
         self.figi = figi
@@ -44,6 +71,8 @@ class ScalpingBot:
             columns=["time", "open", "close", "high", "low", "volume"]
         )
         self.df.set_index("time", inplace=True)
+
+        self.last_candle_time = None
 
         self.position = None  # "long" или "short"
         self.entry_price = None
@@ -64,70 +93,135 @@ class ScalpingBot:
         # Сохраняем клиент для использования в разных методах
         self.client = Client(self.token)
 
+        self.max_drawdown = 0.1  # 10% max drawdown
+        self.daily_loss_limit = 0.02  # 2% daily loss limit
+        self.daily_loss = 0
+        self.starting_balance = self.get_account_balance()
+        self.current_balance = self.starting_balance
+        self.risk_per_trade = 0.01  # 1% risk per trade
+
+        # Add performance metrics tracking
+        self.trades_history = []
+        self.daily_pnl = 0
+        self.win_rate = 0
+        self.total_trades = 0
+        self.winning_trades = 0
+
+    def get_account_balance(self):
+        # Implement a method to fetch the current account balance
+        with self.client as client:
+            portfolio: PositionsResponse = client.operations.get_positions(account_id=self.account_id)
+            # Assume we have a method to extract balance from portfolio
+            # return portfolio.total_amount_currencies.units  # Example, adjust as needed
+            balance = portfolio.money[0].units
+            # print('*balance', balance)
+            return balance
+
+    def calculate_position_size(self, stop_distance):
+        account_value = self.get_account_balance()
+        risk_amount = account_value * self.risk_per_trade
+        position_size = risk_amount / stop_distance
+        return min(position_size, self.max_contracts)
+
     def start(self):
         """Запуск бота: подписка на минутные свечи и обработка данных"""
+        self.trading_active = True
         with self.client as client:
-            market_data_stream: MarketDataStreamService = client.create_market_data_stream()
+            market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
             # Подписываемся на 1-минутные свечи по выбранному FIGI
-            subscribe_request = MarketDataStreamRequest(
+            # subscribe_request = MarketDataStreamRequest(
+            #     subscribe_candles_request=SubscribeCandlesRequest(
+            #         subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
+            #         instruments=[
+            #             SubscribeCandlesRequestInstrument(
+            #                 figi=self.figi,
+            #                 interval=CandleInterval.CANDLE_INTERVAL_1_MIN
+            #             )
+            #         ]
+            #     )
+            # )
+            subscribe_request: MarketDataRequest = MarketDataRequest(
                 subscribe_candles_request=SubscribeCandlesRequest(
                     subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
                     instruments=[
-                        SubscribeCandlesRequestInstrument(
+                        CandleInstrument(
                             figi=self.figi,
-                            interval=CandleInterval.CANDLE_INTERVAL_1_MIN
+                            interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
                         )
-                    ]
+                    ],
                 )
             )
 
-            market_data_stream.send_request(subscribe_request)
+            market_data_stream.subscribe(subscribe_request)
 
             print("Запущен стрим. Ожидаем новые свечи...")
 
             # Получаем поток MarketDataResponse
-            for marketdata in market_data_stream:
-                if marketdata.candle is not None:
-                    candle = marketdata.candle
-                    self.on_new_candle(candle)
+            while self.trading_active:
+                for marketdata in market_data_stream:
+                    if marketdata.candle is not None:
+                        candle = marketdata.candle
+                        self.on_new_candle(candle)
 
-                # Можно обрабатывать и другие типы сообщений (orderbook, trades и т.д.), если необходимо
-                # if marketdata.orderbook:
-                #     ...
-                # if marketdata.trades:
-                #     ...
+                    # Можно обрабатывать и другие типы сообщений (orderbook, trades и т.д.), если необходимо
+                    # if marketdata.orderbook:
+                    #     ...
+                    # if marketdata.trades:
+                    #     ...
 
     def on_new_candle(self, candle):
         """Обработка каждой новой минутной свечи"""
         # Преобразуем Quotation в float
-        open_ = self._quotation_to_float(candle.open)
-        close_ = self._quotation_to_float(candle.close)
-        high_ = self._quotation_to_float(candle.high)
-        low_ = self._quotation_to_float(candle.low)
-        volume_ = candle.volume
+        open_price = self._quotation_to_float(candle.open)
+        close_price = self._quotation_to_float(candle.close)
+        high_price = self._quotation_to_float(candle.high)
+        low_price = self._quotation_to_float(candle.low)
+        volume_sales = candle.volume
+
 
         # Время свечи (UTC). При желании можно конвертировать в локальное
-        time_ = candle.time.ToDatetime()
+        current_candle_time = candle.time.ToDatetime()
 
         # Добавляем/обновляем запись о свече в self.df
         # Так как свеча может обновляться несколько раз в течение минуты, проверим: последний индекс тот же?
-        if time_ in self.df.index:
+        if current_candle_time in self.df.index:
             # Обновляем последнюю свечу
-            self.df.loc[time_, ["open", "close", "high", "low", "volume"]] = [
-                open_, close_, high_, low_, volume_
+            self.df.loc[current_candle_time, ["open", "close", "high", "low", "volume"]] = [
+                open_price, close_price, high_price, low_price, volume_sales
             ]
         else:
             # Создаём новую запись
-            self.df.loc[time_] = [open_, close_, high_, low_, volume_]
+            self.df.loc[current_candle_time] = [open_price, close_price, high_price, low_price, volume_sales]
 
-        # Чтобы корректно считались индикаторы, оставим в DataFrame последние ~200 (или сколько нужно) записей:
-        if len(self.df) > 300:
-            self.df = self.df.iloc[-300:]
+        # Удаляем старые записи, если хотим ограничить размер
+        if len(self.df) > 500:
+            self.df = self.df.iloc[-500:]
 
-        # Когда свеча закрылась (is_complete), уже можно принимать решение
-        if candle.is_complete:
-            self._calculate_indicators()    # Обновляем EMA, RSI и т.д.
-            self._generate_signal_and_trade()
+        # Проверяем, изменился ли time относительно предыдущего
+        if self.last_candle_time and current_candle_time != self.last_candle_time:
+            # Это значит, что свеча с self.last_candle_time теперь точно закрыта
+            # => можно рассчитать индикаторы и принять решение по предыдущей свече
+            self._on_candle_closed(self.last_candle_time)
+
+        # Обновляем "последнее время свечи"
+        self.last_candle_time = current_candle_time
+
+    def _on_candle_closed(self, closed_candle_time):
+        """
+        Вызывается, когда свеча с временем closed_candle_time завершена.
+        Здесь можно рассчитать индикаторы и вызывать логику торговых сигналов.
+        """
+        # У нас в DataFrame уже лежат финальные данные по свече closed_candle_time
+        # Можно делать технический анализ на основании всех предыдущих свечей
+
+        # Пример: посмотрим последнюю "закрытую" цену
+        closed_candle = self.df.loc[closed_candle_time]
+        close_price = closed_candle["close"]
+        print(f"Свеча {closed_candle_time} закрылась. Цена закрытия: {close_price}")
+
+        # Например, вызываем логику стратегии (упрощённо)
+        self._calculate_indicators()
+        self._generate_signal_and_trade()
 
     def _calculate_indicators(self):
         """Расчёт EMA9, EMA21, RSI на основе нашего DataFrame"""
@@ -148,6 +242,22 @@ class ScalpingBot:
 
     def _generate_signal_and_trade(self):
         """Логика генерации сигналов + исполнение сделок (заявок)"""
+        # Add market regime detection
+        market_regime = self.detect_market_regime()
+        if market_regime == "ranging":
+            print("Market is ranging, skipping trade.")
+            return
+
+        # Add volatility filters
+        if not self.is_volatile_enough():
+            print("Market volatility is too low, skipping trade.")
+            return
+
+        # Add time-based filters
+        if not self.is_trading_time():
+            print("Outside of trading hours, skipping trade.")
+            return
+
         # Берём последнюю закрытую свечу
         if len(self.df) < self.ema_slow_period + 1:
             return  # Недостаточно данных, чтобы что-то считать
@@ -225,7 +335,7 @@ class ScalpingBot:
         order_direction = OrderDirection.ORDER_DIRECTION_BUY if direction == "LONG" else OrderDirection.ORDER_DIRECTION_SELL
 
         # генерируем уникальный order_id (например, на основе времени)
-        self.order_id = f"scalping_{datetime.datetime.utcnow().timestamp()}_{direction}"
+        self.order_id = f"scalping_{now().timestamp()}_{direction}"
 
         request = PostOrderRequest(
             figi=self.figi,
@@ -264,7 +374,7 @@ class ScalpingBot:
             return
 
         direction = OrderDirection.ORDER_DIRECTION_SELL if self.position == "long" else OrderDirection.ORDER_DIRECTION_BUY
-        close_order_id = f"close_{datetime.datetime.utcnow().timestamp()}"
+        close_order_id = f"close_{now().timestamp()}"
 
         print(f"Закрываем позицию {self.position} рыночным ордером {close_order_id}...")
 
@@ -281,7 +391,7 @@ class ScalpingBot:
             order_response = client.orders.post_order(request=request)
             # Аналогично — в реальности ждём статуса исполнения
 
-        # Можно примерно прикинуть PnL:
+        # Calculate PnL for the closed trade
         if self.entry_price is not None:
             last_price = self.df.iloc[-1]["close"]
             if self.position == "long":
@@ -289,20 +399,29 @@ class ScalpingBot:
             else:
                 pnl = self.entry_price - last_price
 
-            # Учтём комиссию:
-            # Допустим, комиссия round turn = COMMISSION_RATE * 2
-            # Реальный PnL (за 1 контракт) = pnl - (entry_price * COMMISSION_RATE * 2)
-            # Если нужно точнее, надо умножать на объём и т.д.
+            # Adjust for commission
             comm = self.entry_price * COMMISSION_RATE * 2
             real_pnl = (pnl * self.lot_size) - comm
 
+            # Track trade performance
+            self.trades_history.append({"pnl": real_pnl})
+            self.daily_pnl += real_pnl
+            self.total_trades += 1
+            if real_pnl > 0:
+                self.winning_trades += 1
+
             print(f"PnL (предварительный) = {pnl:.3f}, за вычетом комиссии ~{comm:.3f}, итого ~{real_pnl:.3f}")
 
-        # Сброс переменных
+        # Update performance metrics
+        self.update_performance_metrics()
+
+        # Reset position variables
         self.position = None
         self.entry_price = None
         self.stop_loss_price = None
         self.order_id = None
+
+        self.update_balance_and_check_limits()
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп для уже открытой позиции"""
@@ -335,11 +454,73 @@ class ScalpingBot:
             print("Цена поднялась выше стоп-лосса, закрываем SHORT.")
             self.close_position()
 
+    def update_balance_and_check_limits(self):
+        # Update current balance and check drawdown and daily loss limits
+        self.current_balance = self.get_account_balance()
+        drawdown = (self.starting_balance - self.current_balance) / self.starting_balance
+        if drawdown > self.max_drawdown:
+            print("Max drawdown exceeded, stopping trading.")
+            self.stop_trading()
+
+        daily_loss = (self.starting_balance - self.current_balance) / self.starting_balance
+        if daily_loss > self.daily_loss_limit:
+            print("Daily loss limit exceeded, stopping trading for today.")
+            self.stop_trading()
+
+    def stop_trading(self):
+        # Implement logic to stop trading, e.g., by setting a flag
+        self.trading_active = False
+        # ... additional logic to safely stop trading ...
+
     @staticmethod
     def _quotation_to_float(q):
         """Преобразование Quotation в float (units + nano)"""
         return q.units + q.nano / 1e9 if q else 0.0
 
+    def detect_market_regime(self):
+        """Detects if the market is trending or ranging."""
+        # Simple example using moving average slope
+        df = self.df
+        if len(df) < self.ema_slow_period + 1:
+            return "unknown"
+
+        ema_slope = df["EMA_slow"].diff().mean()
+        if abs(ema_slope) < 0.01:  # Example threshold for ranging market
+            return "ranging"
+        else:
+            return "trending"
+
+    def is_volatile_enough(self):
+        """Checks if the market is volatile enough to trade."""
+        df = self.df
+        if len(df) < 20:
+            return False
+
+        # Example using Average True Range (ATR)
+        df["TR"] = df["high"] - df["low"]
+        atr = df["TR"].rolling(window=14).mean().iloc[-1]
+        return atr > 0.5  # Example threshold for volatility
+
+    def is_trading_time(self):
+        """Checks if the current time is within trading hours."""
+        current_time = datetime.datetime.utcnow().time()
+        start_time = datetime.time(9, 0)  # 9:00 AM UTC
+        end_time = datetime.time(16, 0)  # 4:00 PM UTC
+
+        return start_time <= current_time <= end_time
+
+    def update_performance_metrics(self):
+        """Update performance metrics like win rate."""
+        if self.total_trades > 0:
+            self.win_rate = self.winning_trades / self.total_trades
+        print(f"Win Rate: {self.win_rate:.2%}, Daily PnL: {self.daily_pnl:.2f}")
+
+    def reset_daily_metrics(self):
+        """Reset daily metrics at the end of the trading day."""
+        self.daily_pnl = 0
+        self.trades_history.clear()
+        self.total_trades = 0
+        self.winning_trades = 0
 
 if __name__ == "__main__":
     bot = ScalpingBot(
@@ -352,5 +533,7 @@ if __name__ == "__main__":
         bot.start()
     except KeyboardInterrupt:
         print("Остановка бота по Ctrl+C")
+    except ValueError as exc:
+        print(f"Произошла ошибка ValueError {exc}")
     except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        print(f"Произошла ошибка:{type(e)} {e}")
