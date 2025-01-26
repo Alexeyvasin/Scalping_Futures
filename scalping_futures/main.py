@@ -194,8 +194,7 @@ class ScalpingBot:
                 print(new_row_df)
                 print('------------------------------')
                 print('*res_df')
-                for i, row in new_row_df.iterrows():
-                    self.df.loc[len(self.df)] = row
+                self.df = pd.concat([self.df, new_row_df])
                 print(self.df)
 
         # Log updated DataFrame
