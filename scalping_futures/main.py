@@ -1,11 +1,9 @@
-from os   import getenv
-from dotenv import load_dotenv
-import pandas as pd
-import numpy as np
-import datetime
 import time
 import random
-
+import pandas as pd
+from os import getenv
+from dotenv import load_dotenv
+import datetime
 from tinkoff.invest.utils import now
 from tinkoff.invest import (
     Client,
@@ -30,10 +28,11 @@ load_dotenv()
 
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
 ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
-FIGI_IMOEXF = getenv('FIGI') # FIGI фьючерса на IMOEX (уточните в Тинькофф или через инструменты API)
+FIGI_IMOEXF = getenv('FIGI')  # FIGI фьючерса на IMOEX (уточните в Тинькофф или через инструменты API)
 
 COMMISSION_RATE = 0.00025  # 0,025% = 0.00025 за сделку. Учтём round-turn = 0.0005, если хотим "в обе стороны"
-SPREAD_TICKS = 2           # Условно считаем 2 тика средним спредом (примеры!). Уточните шаг цены фьючерса!
+SPREAD_TICKS = 2  # Условно считаем 2 тика средним спредом (примеры!). Уточните шаг цены фьючерса!
+
 
 class ScalpingBot:
     def __init__(self, token, account_id, figi):
@@ -103,41 +102,40 @@ class ScalpingBot:
         max_retry_delay = 60  # Maximum retry delay
         while self.trading_active:
             try:
-              with Client(self.token) as client:
-                market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
-                subscribe_request: MarketDataRequest = MarketDataRequest(
-                    subscribe_candles_request=SubscribeCandlesRequest(
-                        subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
-                        instruments=[
-                            CandleInstrument(
-                                figi=self.figi,
-                                interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
-                            )
-                        ],
+                with Client(self.token) as client:
+                    market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
+                    subscribe_request: MarketDataRequest = MarketDataRequest(
+                        subscribe_candles_request=SubscribeCandlesRequest(
+                            subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
+                            instruments=[
+                                CandleInstrument(
+                                    figi=self.figi,
+                                    interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
+                                )
+                            ],
+                        )
                     )
-                )
 
-                market_data_stream.subscribe(subscribe_request)
+                    market_data_stream.subscribe(subscribe_request)
 
-                print("Запущен стрим. Ожидаем новые свечи...")
+                    print("Запущен стрим. Ожидаем новые свечи...")
 
-                # Получаем поток MarketDataResponse
-                for marketdata in market_data_stream:
-                    if marketdata.candle is not None:
-                        candle = marketdata.candle
-                        self.on_new_candle(candle)
+                    # Получаем поток MarketDataResponse
+                    for marketdata in market_data_stream:
+                        if marketdata.candle is not None:
+                            candle = marketdata.candle
+                            self.on_new_candle(candle)
 
-                # If the loop exits, it means the stream is over
-                print("Stream ended unexpectedly, will try to reconnect")
+                    # If the loop exits, it means the stream is over
+                    print("Stream ended unexpectedly, will try to reconnect")
             except Exception as e:
-              print(f"Error in stream processing, will retry after delay: {type(e)} {e}")
-              time.sleep(retry_delay)
-              retry_delay = min(retry_delay * 2 + random.uniform(0, 1), max_retry_delay) # exponential backoff + jitter
+                print(f"Error in stream processing, will retry after delay: {type(e)} {e}")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2 + random.uniform(0, 1),
+                                  max_retry_delay)  # exponential backoff + jitter
             else:
-              # Reset retry delay if stream succeeded (unlikely to happen often)
-              retry_delay = 1
-
-
+                # Reset retry delay if stream succeeded (unlikely to happen often)
+                retry_delay = 1
 
     def on_new_candle(self, candle):
         """Обработка каждой новой минутной свечи"""
@@ -150,19 +148,32 @@ class ScalpingBot:
 
         # Время свечи (UTC). При желании можно конвертировать в локальное
         current_candle_time = candle.time  # already datetime object
+        current_candle_time = pd.to_datetime(current_candle_time)
+
+        # Convert current_candle_time to the same type as self.df.index
+        current_candle_time_index = pd.to_datetime(current_candle_time).to_datetime64()
 
         # Добавляем/обновляем запись о свече в self.df
         # Так как свеча может обновляться несколько раз в течение минуты, проверим: последний индекс тот же?
-        if current_candle_time in self.df.index:
+        if current_candle_time_index in self.df.index:
             # Check if the candle was already added. Do not update candle if exists
-            if self.df.loc[current_candle_time, "close"] != close_price:
-              # Обновляем последнюю свечу
-              self.df.loc[current_candle_time, ["open", "close", "high", "low", "volume"]] = [
-                  open_price, close_price, high_price, low_price, volume_sales
-              ]
+            try:
+                existing_candle = self.df.loc[current_candle_time_index]
+                if existing_candle["close"] != close_price or \
+                        existing_candle["open"] != open_price or \
+                        existing_candle["high"] != high_price or \
+                        existing_candle["low"] != low_price or \
+                        existing_candle["volume"] != volume_sales:
+                    # Обновляем последнюю свечу
+                    self.df.loc[current_candle_time_index, ["open", "close", "high", "low", "volume"]] = [
+                        open_price, close_price, high_price, low_price, volume_sales
+                    ]
+            except KeyError as e:
+                print(f"KeyError accessing the dataframe: {e}")
+                return  # Skip this candle if there is key error
         else:
             # Создаём новую запись
-            self.df.loc[current_candle_time] = [open_price, close_price, high_price, low_price, volume_sales]
+            self.df.loc[current_candle_time_index] = [open_price, close_price, high_price, low_price, volume_sales]
 
         # Удаляем старые записи, если хотим ограничить размер
         if len(self.df) > 500:
@@ -184,15 +195,22 @@ class ScalpingBot:
         """
         # У нас в DataFrame уже лежат финальные данные по свече closed_candle_time
         # Можно делать технический анализ на основании всех предыдущих свечей
+        closed_candle_time = pd.to_datetime(closed_candle_time)
 
-        # Пример: посмотрим последнюю "закрытую" цену
-        closed_candle = self.df.loc[closed_candle_time]
-        close_price = closed_candle["close"]
-        print(f"Свеча {closed_candle_time} закрылась. Цена закрытия: {close_price}")
+        # Convert to datetime64
+        closed_candle_time_index = pd.to_datetime(closed_candle_time).to_datetime64()
 
-        # Например, вызываем логику стратегии (упрощённо)
-        self._calculate_indicators()
-        self._generate_signal_and_trade()
+        try:
+            # Пример: посмотрим последнюю "закрытую" цену
+            closed_candle = self.df.loc[closed_candle_time_index]
+            close_price = closed_candle["close"]
+            print(f"Свеча {closed_candle_time} закрылась. Цена закрытия: {close_price}")
+
+            # Например, вызываем логику стратегии (упрощённо)
+            self._calculate_indicators()
+            self._generate_signal_and_trade()
+        except KeyError as e:
+            print(f"KeyError accessing dataframe during candle closing: {e}")
 
     def _calculate_indicators(self):
         """Расчёт EMA9, EMA21, RSI на основе нашего DataFrame"""
@@ -261,7 +279,8 @@ class ScalpingBot:
         # - Если потенциал движения < спред+комиссия, лучше не входить
         # Здесь чисто символический пример, как мы можем проверить средний диапазон свечи
         avg_range = (self.df["high"] - self.df["low"]).tail(10).mean()  # усредн. диапазон последних 10 свечей
-        cost_of_spread_and_commission = SPREAD_TICKS + (close_price * COMMISSION_RATE * 2)  # +2 тика + комиссия (тудым-сюдым)
+        cost_of_spread_and_commission = SPREAD_TICKS + (
+                    close_price * COMMISSION_RATE * 2)  # +2 тика + комиссия (тудым-сюдым)
 
         # Для упрощения: если средний ход свечи меньше, чем стоимость спреда+комиссии, мы пропускаем сделку
         if avg_range < cost_of_spread_and_commission:
@@ -492,6 +511,7 @@ class ScalpingBot:
         self.trades_history.clear()
         self.total_trades = 0
         self.winning_trades = 0
+
 
 if __name__ == "__main__":
     bot = ScalpingBot(
