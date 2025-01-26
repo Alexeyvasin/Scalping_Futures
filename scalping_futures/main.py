@@ -186,10 +186,12 @@ class ScalpingBot:
                     "high": high_price,
                     "low": low_price,
                     "volume": volume_sales,
-                    "EMA_fast": pd.NA,
-                    "EMA_slow": pd.NA,
-                    "RSI": pd.NA,
                 }
+                # Add NaN for the calculated columns if they are not already in the row
+                for col in ["EMA_fast", "EMA_slow", "RSI"]:
+                    if col not in new_row:
+                        new_row[col] = None
+
                 self.df.loc[current_candle_time_index] = new_row
             except ValueError as e:
                 print(f"ValueError when adding new data: {e}")
