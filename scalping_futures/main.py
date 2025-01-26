@@ -153,10 +153,16 @@ class ScalpingBot:
         # Convert current_candle_time to the same type as self.df.index
         current_candle_time_index = pd.to_datetime(current_candle_time).to_datetime64()
 
+        # Debugging: Log the incoming candle data
+        print(
+            f"Incoming candle data: {current_candle_time_index}, {open_price}, {close_price}, {high_price}, {low_price}, {volume_sales}")
+
+        # Debugging: Log the current DataFrame structure before adding/updating
+        print(f"Current DataFrame columns: {self.df.columns}")
+        print(f"Current DataFrame preview:\n{self.df.tail()}")
+
         # Добавляем/обновляем запись о свече в self.df
-        # Так как свеча может обновляться несколько раз в течение минуты, проверим: последний индекс тот же?
         if current_candle_time_index in self.df.index:
-            # Check if the candle was already added. Do not update candle if exists
             try:
                 existing_candle = self.df.loc[current_candle_time_index]
                 if existing_candle["close"] != close_price or \
@@ -169,11 +175,21 @@ class ScalpingBot:
                         open_price, close_price, high_price, low_price, volume_sales
                     ]
             except KeyError as e:
-                print(f"KeyError accessing the dataframe: {e}")
-                return  # Skip this candle if there is key error
+                print(f"KeyError accessing the DataFrame: {e}")
+                return
         else:
-            # Создаём новую запись
-            self.df.loc[current_candle_time_index] = [open_price, close_price, high_price, low_price, volume_sales]
+            try:
+                # Создаём новую запись
+                self.df.loc[current_candle_time_index] = [open_price, close_price, high_price, low_price, volume_sales]
+            except ValueError as e:
+                # Debugging: Log the error and problematic data
+                print(f"ValueError when adding new data: {e}")
+                print(f"New data: {[open_price, close_price, high_price, low_price, volume_sales]}")
+                print(f"DataFrame expected columns: {self.df.columns}")
+                return
+
+        # Debugging: Log the updated DataFrame
+        print(f"Updated DataFrame preview:\n{self.df.tail()}")
 
         # Удаляем старые записи, если хотим ограничить размер
         if len(self.df) > 500:
@@ -182,7 +198,6 @@ class ScalpingBot:
         # Проверяем, изменился ли time относительно предыдущего
         if self.last_candle_time and current_candle_time != self.last_candle_time:
             # Это значит, что свеча с self.last_candle_time теперь точно закрыта
-            # => можно рассчитать индикаторы и принять решение по предыдущей свече
             self._on_candle_closed(self.last_candle_time)
 
         # Обновляем "последнее время свечи"
