@@ -153,6 +153,11 @@ class ScalpingBot:
         # Convert current_candle_time to the same type as self.df.index
         current_candle_time_index = pd.to_datetime(current_candle_time).to_datetime64()
 
+        # Ensure DataFrame has all expected columns
+        expected_columns = ["open", "close", "high", "low", "volume", "EMA_fast", "EMA_slow", "RSI"]
+        if not all(col in self.df.columns for col in expected_columns):
+            self.df = self.df.reindex(columns=expected_columns)
+
         # Debugging: Log the incoming candle data
         print(
             f"Incoming candle data: {current_candle_time_index}, {open_price}, {close_price}, {high_price}, {low_price}, {volume_sales}")
@@ -164,21 +169,14 @@ class ScalpingBot:
         # Добавляем/обновляем запись о свече в self.df
         if current_candle_time_index in self.df.index:
             try:
-                existing_candle = self.df.loc[current_candle_time_index]
-                if existing_candle["close"] != close_price or \
-                        existing_candle["open"] != open_price or \
-                        existing_candle["high"] != high_price or \
-                        existing_candle["low"] != low_price or \
-                        existing_candle["volume"] != volume_sales:
-                    # Update the existing row
-                    self.df.loc[current_candle_time_index, ["open", "close", "high", "low", "volume"]] = [
-                        open_price, close_price, high_price, low_price, volume_sales
-                    ]
+                self.df.loc[current_candle_time_index, ["open", "close", "high", "low", "volume"]] = [
+                    open_price, close_price, high_price, low_price, volume_sales
+                ]
             except KeyError as e:
                 print(f"KeyError accessing the DataFrame: {e}")
                 return
         else:
-            # Add a new row with NaN for the calculated columns (EMA, RSI, etc.)
+            # Add a new row with default values for calculated columns
             try:
                 new_row = {
                     "open": open_price,
@@ -186,12 +184,10 @@ class ScalpingBot:
                     "high": high_price,
                     "low": low_price,
                     "volume": volume_sales,
+                    "EMA_fast": pd.NA,
+                    "EMA_slow": pd.NA,
+                    "RSI": pd.NA,
                 }
-                # Add NaN for the calculated columns if they are not already in the row
-                for col in ["EMA_fast", "EMA_slow", "RSI"]:
-                    if col not in new_row:
-                        new_row[col] = None
-
                 self.df.loc[current_candle_time_index] = new_row
             except ValueError as e:
                 print(f"ValueError when adding new data: {e}")
@@ -254,6 +250,10 @@ class ScalpingBot:
         roll_down = down.rolling(self.rsi_period).mean()
         rs = roll_up / roll_down
         df["RSI"] = 100.0 - (100.0 / (1.0 + rs))
+
+        # Debugging: Log calculated indicators
+        print("Indicators updated:")
+        print(df[["EMA_fast", "EMA_slow", "RSI"]].tail())
 
     def _generate_signal_and_trade(self):
         """Логика генерации сигналов + исполнение сделок (заявок)"""
