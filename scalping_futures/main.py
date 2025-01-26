@@ -33,6 +33,15 @@ FIGI_IMOEXF = getenv('FIGI')  # FIGI фьючерса на IMOEX (уточнит
 COMMISSION_RATE = 0.00025  # 0,025% = 0.00025 за сделку. Учтём round-turn = 0.0005, если хотим "в обе стороны"
 SPREAD_TICKS = 2  # Условно считаем 2 тика средним спредом (примеры!). Уточните шаг цены фьючерса!
 
+# def check_df(df_1, df_2):
+#     print("*df_1")
+#     print(df_1)
+#     print('______________')
+#     print("*df_2")
+#     print(df_2)
+#     print('______________________')
+#     # return pd.concat([df_1, df_2])
+#     return pd.DataFrame({**df_1, **df_2})
 
 class ScalpingBot:
     def __init__(self, token, account_id, figi):
@@ -139,78 +148,69 @@ class ScalpingBot:
 
     def on_new_candle(self, candle):
         """Обработка каждой новой минутной свечи"""
-        # Преобразуем Quotation в float
         open_price = self._quotation_to_float(candle.open)
         close_price = self._quotation_to_float(candle.close)
         high_price = self._quotation_to_float(candle.high)
         low_price = self._quotation_to_float(candle.low)
         volume_sales = candle.volume
+        current_candle_time = pd.to_datetime(candle.time).to_datetime64()
 
-        # Время свечи (UTC). При желании можно конвертировать в локальное
-        current_candle_time = candle.time  # already datetime object
-        current_candle_time = pd.to_datetime(current_candle_time)
-
-        # Convert current_candle_time to the same type as self.df.index
-        current_candle_time_index = pd.to_datetime(current_candle_time).to_datetime64()
-
-        # Ensure DataFrame has all expected columns
+        # Ensure all expected columns exist
         expected_columns = ["open", "close", "high", "low", "volume", "EMA_fast", "EMA_slow", "RSI"]
-        if not all(col in self.df.columns for col in expected_columns):
-            self.df = self.df.reindex(columns=expected_columns)
+        for col in expected_columns:
+            if col not in self.df.columns:
+                self.df[col] = pd.NA
 
-        # Debugging: Log the incoming candle data
+        # Debug incoming candle
         print(
-            f"Incoming candle data: {current_candle_time_index}, {open_price}, {close_price}, {high_price}, {low_price}, {volume_sales}")
+            f"Incoming candle data: {current_candle_time}, {open_price}, {close_price}, {high_price}, {low_price}, {volume_sales}"
+        )
 
-        # Debugging: Log the current DataFrame structure before adding/updating
-        print(f"Current DataFrame columns: {self.df.columns}")
-        print(f"Current DataFrame preview:\n{self.df.tail()}")
+        # Add or update the row
+        new_row = {
+            "open": open_price,
+            "close": close_price,
+            "high": high_price,
+            "low": low_price,
+            "volume": volume_sales,
+            "EMA_fast": pd.NA,
+            "EMA_slow": pd.NA,
+            "RSI": pd.NA,
+        }
+        new_row_df = pd.DataFrame([new_row], index=[current_candle_time])
 
-        # Добавляем/обновляем запись о свече в self.df
-        if current_candle_time_index in self.df.index:
-            try:
-                self.df.loc[current_candle_time_index, ["open", "close", "high", "low", "volume"]] = [
-                    open_price, close_price, high_price, low_price, volume_sales
-                ]
-            except KeyError as e:
-                print(f"KeyError accessing the DataFrame: {e}")
-                return
-        else:
-            # Add a new row with default values for calculated columns
-            try:
-                new_row = {
-                    "open": open_price,
-                    "close": close_price,
-                    "high": high_price,
-                    "low": low_price,
-                    "volume": volume_sales,
-                    "EMA_fast": pd.NA,
-                    "EMA_slow": pd.NA,
-                    "RSI": pd.NA,
-                }
-                self.df.loc[current_candle_time_index] = new_row
-            except ValueError as e:
-                print(f"ValueError when adding new data: {e}")
-                print(f"New data: {new_row}")
-                print(f"DataFrame expected columns: {self.df.columns}")
-                return
+        # Drop rows with all NaN values before concatenation
+        if not new_row_df.isnull().all(axis=1).iloc[0]:  # Check if the row is not all NaN
+            if current_candle_time in self.df.index:
+                # Update only if any of the new values are not NA
+                for col in new_row_df.columns:
+                    if not pd.isna(new_row_df[col].iloc[0]):
+                        self.df.loc[current_candle_time, col] = new_row_df[col].iloc[0]
+            else:
+                print('*self.df')
+                print(self.df)
+                print('------------------------------')
+                print('*new_row_df')
+                print(new_row_df)
+                print('------------------------------')
+                print('*res_df')
+                for i, row in new_row_df.iterrows():
+                    self.df.loc[len(self.df)] = row
+                print(self.df)
 
-        # Debugging: Log the updated DataFrame
+        # Log updated DataFrame
         print(f"Updated DataFrame preview:\n{self.df.tail()}")
 
-        # Удаляем старые записи, если хотим ограничить размер
+        # Clean old records if DataFrame grows too large
         if len(self.df) > 500:
             self.df = self.df.iloc[-500:]
 
-        # Проверяем, изменился ли time относительно предыдущего
         if self.last_candle_time and current_candle_time != self.last_candle_time:
-            # Это значит, что свеча с self.last_candle_time теперь точно закрыта
-            self._on_candle_closed(self.last_candle_time)
+            self._on_candle_closed_handler(self.last_candle_time)
 
-        # Обновляем "последнее время свечи"
         self.last_candle_time = current_candle_time
 
-    def _on_candle_closed(self, closed_candle_time):
+    def _on_candle_closed_handler(self, closed_candle_time):
         """
         Вызывается, когда свеча с временем closed_candle_time завершена.
         Здесь можно рассчитать индикаторы и вызывать логику торговых сигналов.
@@ -275,6 +275,7 @@ class ScalpingBot:
 
         # Берём последнюю закрытую свечу
         if len(self.df) < self.ema_slow_period + 1:
+            print("Not enough data for EMA calculations.")
             return  # Недостаточно данных, чтобы что-то считать
 
         last_row = self.df.iloc[-1]
@@ -283,9 +284,9 @@ class ScalpingBot:
         rsi_value = last_row["RSI"]
         close_price = last_row["close"]
 
-        # Простейший сигнал: пересечение EMA_fast и EMA_slow
-        # (Для полноты нужно ещё смотреть пред. свечи, чтобы уверенно фиксировать факт пересечения)
-        # Здесь для упрощения:
+        # Debugging: Log indicator values
+        print(f"Debugging Indicators - EMA_fast: {ema_fast}, EMA_slow: {ema_slow}, RSI: {rsi_value}")
+
         prev_row = self.df.iloc[-2]
         prev_ema_fast = prev_row["EMA_fast"]
         prev_ema_slow = prev_row["EMA_slow"]
@@ -300,38 +301,20 @@ class ScalpingBot:
         if prev_ema_fast > prev_ema_slow and ema_fast < ema_slow and rsi_value > 30:
             short_signal = True
 
-        # Дополнительно проверим spread и комиссию:
-        # - Пусть условно шаг цены = 1, спред ~ 2 тика, комиссия round turn ~ 0.0005 (0.05%)
-        # - Если потенциал движения < спред+комиссия, лучше не входить
-        # Здесь чисто символический пример, как мы можем проверить средний диапазон свечи
-        avg_range = (self.df["high"] - self.df["low"]).tail(10).mean()  # усредн. диапазон последних 10 свечей
-        cost_of_spread_and_commission = SPREAD_TICKS + (
-                    close_price * COMMISSION_RATE * 2)  # +2 тика + комиссия (тудым-сюдым)
-
-        # Для упрощения: если средний ход свечи меньше, чем стоимость спреда+комиссии, мы пропускаем сделку
-        if avg_range < cost_of_spread_and_commission:
-            long_signal = False
-            short_signal = False
-
-        # Если у нас уже есть позиция, проверим, нужно ли закрыть (противоположный сигнал) или скорректировать стоп
+        # Проверяем, нужно ли открывать, закрывать, или обновлять позиции
         if self.position == "long":
-            # Если пришёл сигнал SHORT — закрываем LONG и открываем SHORT
             if short_signal:
                 self.close_position()
                 self.open_position(direction="SHORT", current_price=close_price)
             else:
-                # Обновляем стоп-лосс (трейлинг)
                 self._update_stop_loss()
         elif self.position == "short":
-            # Если пришёл сигнал LONG — закрываем SHORT и открываем LONG
             if long_signal:
                 self.close_position()
                 self.open_position(direction="LONG", current_price=close_price)
             else:
-                # Обновляем стоп-лосс (трейлинг)
                 self._update_stop_loss()
         else:
-            # Пока позиций нет. Если есть сигнал — открываем
             if long_signal:
                 self.open_position(direction="LONG", current_price=close_price)
             elif short_signal:
