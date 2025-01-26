@@ -3,23 +3,9 @@ from dotenv import load_dotenv
 import pandas as pd
 import numpy as np
 import datetime
+import time
+import random
 
-
-# Из tinkoff.invest импортируем нужные классы и функции
-# from tinkoff.invest import (
-#     Client,
-#     CandleInterval,
-#     OrderDirection,
-#     OrderType,
-#     MarketDataRequest,
-#     MarketDataServerSideStream,
-#     MarketDataResponse,
-#     Quotation,
-#     InstrumentIdType,
-#     OrderExecutionReportStatus,
-#     OrderState,
-#     PositionsResponse,
-# )
 from tinkoff.invest.utils import now
 from tinkoff.invest import (
     Client,
@@ -40,16 +26,6 @@ from tinkoff.invest import (
 )
 from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
-from tinkoff.invest.schemas import Candle, HistoricCandle
-
-from tinkoff.invest.services import MarketDataStreamService, OrdersService
-# from tinkoff.invest.request import (
-#     MarketDataStreamRequest,
-#     SubscribeCandlesRequest,
-#     SubscribeCandlesRequestInstrument,
-#     SubscriptionAction,
-#     PostOrderRequest,
-# )
 load_dotenv()
 
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
@@ -90,9 +66,6 @@ class ScalpingBot:
         # Сколько мы готовы торговать (контрактов)
         self.max_contracts = 1
 
-        # Сохраняем клиент для использования в разных методах
-        self.client = Client(self.token)
-
         self.max_drawdown = 0.1  # 10% max drawdown
         self.daily_loss_limit = 0.02  # 2% daily loss limit
         self.daily_loss = 0
@@ -109,7 +82,7 @@ class ScalpingBot:
 
     def get_account_balance(self):
         # Implement a method to fetch the current account balance
-        with self.client as client:
+        with Client(self.token) as client:
             portfolio: PositionsResponse = client.operations.get_positions(account_id=self.account_id)
             # Assume we have a method to extract balance from portfolio
             # return portfolio.total_amount_currencies.units  # Example, adjust as needed
@@ -126,41 +99,45 @@ class ScalpingBot:
     def start(self):
         """Запуск бота: подписка на минутные свечи и обработка данных"""
         self.trading_active = True
-        with Client(TOKEN) as client:
-            market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
-            subscribe_request: MarketDataRequest = MarketDataRequest(
-                subscribe_candles_request=SubscribeCandlesRequest(
-                    subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
-                    instruments=[
-                        CandleInstrument(
-                            figi=self.figi,
-                            interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
-                        )
-                    ],
+        retry_delay = 1  # Initial retry delay in seconds
+        max_retry_delay = 60  # Maximum retry delay
+        while self.trading_active:
+            try:
+              with Client(self.token) as client:
+                market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
+                subscribe_request: MarketDataRequest = MarketDataRequest(
+                    subscribe_candles_request=SubscribeCandlesRequest(
+                        subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
+                        instruments=[
+                            CandleInstrument(
+                                figi=self.figi,
+                                interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
+                            )
+                        ],
+                    )
                 )
-            )
 
-            market_data_stream.subscribe(subscribe_request)
+                market_data_stream.subscribe(subscribe_request)
 
-            print("Запущен стрим. Ожидаем новые свечи...")
+                print("Запущен стрим. Ожидаем новые свечи...")
 
-            # Получаем поток MarketDataResponse
-            while self.trading_active:
-                try:
-                    for marketdata in market_data_stream:
-                        if marketdata.candle is not None:
-                            candle = marketdata.candle
-                            self.on_new_candle(candle)
+                # Получаем поток MarketDataResponse
+                for marketdata in market_data_stream:
+                    if marketdata.candle is not None:
+                        candle = marketdata.candle
+                        self.on_new_candle(candle)
 
-                    # Можно обрабатывать и другие типы сообщений (orderbook, trades и т.д.), если необходимо
-                    # if marketdata.orderbook:
-                    #     ...
-                    # if marketdata.trades:
-                    #     ...
-                except Exception as exc_:
-                    print(f"Error in stream processing: {type(exc_)} {exc_}")
-                    # You might want to add a sleep or retry logic here
-                    # if the error is recoverable
+                # If the loop exits, it means the stream is over
+                print("Stream ended unexpectedly, will try to reconnect")
+            except Exception as e:
+              print(f"Error in stream processing, will retry after delay: {type(e)} {e}")
+              time.sleep(retry_delay)
+              retry_delay = min(retry_delay * 2 + random.uniform(0, 1), max_retry_delay) # exponential backoff + jitter
+            else:
+              # Reset retry delay if stream succeeded (unlikely to happen often)
+              retry_delay = 1
+
+
 
     def on_new_candle(self, candle):
         """Обработка каждой новой минутной свечи"""
@@ -177,13 +154,14 @@ class ScalpingBot:
         # Добавляем/обновляем запись о свече в self.df
         # Так как свеча может обновляться несколько раз в течение минуты, проверим: последний индекс тот же?
         if current_candle_time in self.df.index:
-            # Обновляем последнюю свечу
-            self.df.loc[current_candle_time, ["open", "close", "high", "low", "volume"]] = [
-                open_price, close_price, high_price, low_price, volume_sales
-            ]
+            # Check if the candle was already added. Do not update candle if exists
+            if self.df.loc[current_candle_time, "close"] != close_price:
+              # Обновляем последнюю свечу
+              self.df.loc[current_candle_time, ["open", "close", "high", "low", "volume"]] = [
+                  open_price, close_price, high_price, low_price, volume_sales
+              ]
         else:
             # Создаём новую запись
-            # Here is a fix
             self.df.loc[current_candle_time] = [open_price, close_price, high_price, low_price, volume_sales]
 
         # Удаляем старые записи, если хотим ограничить размер
@@ -319,7 +297,7 @@ class ScalpingBot:
         # 1. Проверяем, достаточно ли свободных средств. Упрощённая логика:
         # Для фьючерсов нужно смотреть гарантийное обеспечение (ГО).
         # В Tinkoff Invest через self.client.orders.get_positions(...) можно получить PositionsResponse
-        with self.client as client:
+        with Client(self.token) as client:
             portfolio: PositionsResponse = client.operations.get_positions(account_id=self.account_id)
             # Здесь нужно найти инструмент, понять free_money и сравнить с требуемой маржей.
             # Для примера сделаем вид, что денег всегда достаточно.
@@ -341,7 +319,7 @@ class ScalpingBot:
         )
 
         print(f"Открываем позицию {direction}. Отправляем рыночный ордер {self.order_id}...")
-        with self.client as client:
+        with Client(self.token) as client:
             order_response = client.orders.post_order(request=request)
 
         # В реальности нужно дождаться статуса исполнения, проверить, что сделка действительно исполнилась.
@@ -371,7 +349,7 @@ class ScalpingBot:
 
         print(f"Закрываем позицию {self.position} рыночным ордером {close_order_id}...")
 
-        with self.client as client:
+        with Client(self.token) as client:
             request = PostOrderRequest(
                 figi=self.figi,
                 quantity=self.lot_size,
