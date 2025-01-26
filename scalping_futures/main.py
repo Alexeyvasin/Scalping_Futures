@@ -170,7 +170,7 @@ class ScalpingBot:
                         existing_candle["high"] != high_price or \
                         existing_candle["low"] != low_price or \
                         existing_candle["volume"] != volume_sales:
-                    # Обновляем последнюю свечу
+                    # Update the existing row
                     self.df.loc[current_candle_time_index, ["open", "close", "high", "low", "volume"]] = [
                         open_price, close_price, high_price, low_price, volume_sales
                     ]
@@ -178,13 +178,22 @@ class ScalpingBot:
                 print(f"KeyError accessing the DataFrame: {e}")
                 return
         else:
+            # Add a new row with NaN for the calculated columns (EMA, RSI, etc.)
             try:
-                # Создаём новую запись
-                self.df.loc[current_candle_time_index] = [open_price, close_price, high_price, low_price, volume_sales]
+                new_row = {
+                    "open": open_price,
+                    "close": close_price,
+                    "high": high_price,
+                    "low": low_price,
+                    "volume": volume_sales,
+                    "EMA_fast": pd.NA,
+                    "EMA_slow": pd.NA,
+                    "RSI": pd.NA,
+                }
+                self.df.loc[current_candle_time_index] = new_row
             except ValueError as e:
-                # Debugging: Log the error and problematic data
                 print(f"ValueError when adding new data: {e}")
-                print(f"New data: {[open_price, close_price, high_price, low_price, volume_sales]}")
+                print(f"New data: {new_row}")
                 print(f"DataFrame expected columns: {self.df.columns}")
                 return
 
