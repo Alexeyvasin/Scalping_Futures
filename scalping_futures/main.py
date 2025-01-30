@@ -33,6 +33,7 @@ FIGI_IMOEXF = getenv('FIGI')  # FIGI фьючерса на IMOEX (уточнит
 COMMISSION_RATE = 0.00025  # 0,025% = 0.00025 за сделку. Учтём round-turn = 0.0005, если хотим "в обе стороны"
 SPREAD_TICKS = 2  # Условно считаем 2 тика средним спредом (примеры!). Уточните шаг цены фьючерса!
 
+
 # def check_df(df_1, df_2):
 #     print("*df_1")
 #     print(df_1)
@@ -187,15 +188,15 @@ class ScalpingBot:
                     if not pd.isna(new_row_df[col].iloc[0]):
                         self.df.loc[current_candle_time, col] = new_row_df[col].iloc[0]
             else:
-                print('*self.df')
-                print(self.df)
-                print('------------------------------')
-                print('*new_row_df')
-                print(new_row_df)
-                print('------------------------------')
-                print('*res_df')
+                # print('*self.df')
+                # print(self.df)
+                # print('------------------------------')
+                # print('*new_row_df')
+                # print(new_row_df)
+                # print('------------------------------')
+                # print('*res_df')
                 self.df = pd.concat([self.df, new_row_df])
-                print(self.df)
+                # print(self.df)
 
         # Log updated DataFrame
         print(f"Updated DataFrame preview:\n{self.df.tail()}")
