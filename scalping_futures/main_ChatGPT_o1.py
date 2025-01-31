@@ -1,4 +1,5 @@
 import asyncio
+import yaml
 import time
 import random
 import pandas as pd
@@ -39,7 +40,7 @@ handler = TimedRotatingFileHandler(
     filename=log_file_path,
     when="midnight",
     interval=1,
-    backupCount=7,     # keep last 7 log files (for example)
+    backupCount=7,  # keep last 7 log files (for example)
     encoding="utf-8",
 )
 # By default, the rotation creates files like "scalping.2025-01-30.log"
@@ -60,12 +61,21 @@ logger.addHandler(console_handler)
 # ----------------------------------------------------------------
 load_dotenv()
 
+
+def load_config(config_path="config.yml"):
+    with open(config_path, "r") as file:
+        return yaml.safe_load(file)
+
+
+config = load_config("config.yml")
+
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
 ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
-FIGI_IMOEXF = getenv('FIGI')       # FIGI фьючерса на IMOEX (уточните при необходимости)
+FIGI = config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточните при необходимости)
 
-COMMISSION_RATE = 0.00025  # Пример: 0.025% (round-turn => 0.0005)
-SPREAD_TICKS = 2           # Пример: 2 тика
+COMMISSION_RATE = config['strategy']['commission_rate']  # Пример: 0.025% (round-turn => 0.0005)
+SPREAD_TICKS = config['strategy']['spread_ticks']  # Пример: 2 тика
+
 
 class ScalpingBot:
     def __init__(self, token, account_id, figi):
@@ -81,29 +91,29 @@ class ScalpingBot:
 
         self.last_candle_time = None
 
-        self.position = None   # "long" или "short"
+        self.position = None  # "long" или "short"
         self.entry_price = None
         self.order_id = None
         self.stop_loss_price = None
         self.last_signal = None
 
         # Параметры индикаторов
-        self.ema_fast_period = 9
-        self.ema_slow_period = 21
-        self.rsi_period = 14
+        self.ema_fast_period = config['strategy']['ema_fast_period']
+        self.ema_slow_period = config['strategy']['ema_slow_period']
+        self.rsi_period = config['strategy']['rsi_period']
 
         # Торговые параметры
-        self.lot_size = 1
-        self.max_contracts = 1
+        self.lot_size = config['strategy']['lot_size']
+        self.max_contracts = config['strategy']['max_contracts']
 
-        self.max_drawdown = 0.1      # 10%
-        self.daily_loss_limit = 0.02 # 2%
+        self.max_drawdown = config['strategy']['max_drawdown']  # 10%
+        self.daily_loss_limit = config['strategy']['daily_loss_limit']  # 2%
         self.daily_loss = 0
 
         # Считаем начальный баланс (блокирующий вызов, оборачиваем в to_thread когда нужно)
         self.starting_balance = self.get_account_balance_sync()
         self.current_balance = self.starting_balance
-        self.risk_per_trade = 0.01   # 1%
+        self.risk_per_trade = config['strategy']['risk_per_trade']  # 1%
 
         # Метрики продуктивности
         self.trades_history = []
@@ -350,10 +360,10 @@ class ScalpingBot:
             if col not in self.df.columns:
                 self.df[col] = pd.NA
 
-        logger.info(
-            f"Incoming candle data: {current_candle_time}, "
-            f"{open_price}, {close_price}, {high_price}, {low_price}, {volume_sales}"
-        )
+        # logger.info(
+        #     f"Incoming candle data: {current_candle_time}, "
+        #     f"{open_price}, {close_price}, {high_price}, {low_price}, {volume_sales}"
+        # )
 
         new_row = {
             "open": open_price,
@@ -539,19 +549,63 @@ class ScalpingBot:
             return "trending"
 
     def is_volatile_enough(self):
-        """Примитивная проверка волатильности (на основе ATR-like)."""
+        """
+        Checks if the market is volatile enough to trade using a more realistic ATR(14) calculation.
+
+        1. True Range (TR) = max(
+             current_high - current_low,
+             abs(current_high - previous_close),
+             abs(current_low - previous_close)
+           )
+        2. ATR(14) = rolling mean of TR over the last 14 candles.
+        3. Compare ATR(14) to a fraction of the latest closing price (e.g. 0.5%).
+        """
         df = self.df
-        if len(df) < 20:
+
+        # Need at least 15 rows to properly compute a 14-period ATR (TR depends on previous close).
+        if len(df) < 15:
+            logging.info('Not enough candles')
             return False
-        df["TR"] = df["high"] - df["low"]
-        atr = df["TR"].rolling(window=14).mean().iloc[-1]
-        return atr > 0.5  # очень условный порог
+
+        # Make sure we have a "PrevClose" column to use in True Range calculations:
+        if "PrevClose" not in df.columns:
+            df["PrevClose"] = df["close"].shift(1)
+
+        # Calculate True Range for each row:
+        # TR = max( (high-low), |high - prev_close|, |low - prev_close| )
+        df["TR"] = df.apply(
+            lambda row: max(
+                row["high"] - row["low"],
+                abs(row["high"] - row["PrevClose"]),
+                abs(row["low"] - row["PrevClose"])
+            ),
+            axis=1
+        )
+
+        # Compute the 14-period Average True Range (rolling mean or ewm is typical; here we use rolling mean)
+        df["ATR_14"] = df["TR"].rolling(window=14).mean()
+
+        # Get the latest computed ATR
+        current_atr = df["ATR_14"].iloc[-1]
+
+        # Also get the latest close price
+        last_close_price = df["close"].iloc[-1]
+        if last_close_price <= 0:
+            # If price is invalid or zero, can't proceed
+            return False
+
+        # Define a threshold. For example:
+        # require the ATR to be at least 0.5% of the current close (i.e. 0.005 * close_price)
+        threshold = 0.005 * last_close_price
+
+        # Return True if the market is sufficiently volatile:
+        return current_atr > threshold
 
     def is_trading_time(self):
         """Пример: 9:00–16:00 UTC."""
         current_time = datetime.datetime.utcnow().time()
-        start_time = datetime.time(9, 0)   # 09:00 UTC
-        end_time = datetime.time(16, 0)   # 16:00 UTC
+        start_time = datetime.time(9, 0)  # 09:00 UTC
+        end_time = datetime.time(16, 0)  # 16:00 UTC
         return start_time <= current_time <= end_time
 
     def update_performance_metrics(self):
@@ -579,7 +633,7 @@ async def main():
     bot = ScalpingBot(
         token=TOKEN,
         account_id=ACCOUNT_ID,
-        figi=FIGI_IMOEXF,
+        figi=FIGI,
     )
 
     # 1) Grab the currently running event loop:

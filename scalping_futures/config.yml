@@ -10,3 +10,5 @@ strategy:
   risk_per_trade: 0.01
   lot_size: 1
   max_contracts: 1
+  commission_rate: 0.00025
+  spread_ticks: 2
