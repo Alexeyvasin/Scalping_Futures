@@ -69,6 +69,7 @@ SPREAD_TICKS = 2           # Пример: 2 тика
 
 class ScalpingBot:
     def __init__(self, token, account_id, figi):
+        self.main_loop = None
         self.trading_active = False
         self.token = token
         self.account_id = account_id
@@ -400,8 +401,9 @@ class ScalpingBot:
             self._calculate_indicators()
             # Because we want to do trades (which are async now),
             # we can schedule that with asyncio.create_task.
-            loop = asyncio.get_event_loop()
-            loop.create_task(self._generate_signal_and_trade())
+            # loop = asyncio.get_event_loop()
+            # loop.create_task(self._generate_signal_and_trade())
+            asyncio.run_coroutine_threadsafe(self._generate_signal_and_trade(), self.main_loop)
         except KeyError as e:
             logger.error(f"KeyError accessing dataframe during candle closing: {e}")
 
@@ -511,12 +513,15 @@ class ScalpingBot:
         # Стоп выбит?
         if self.position == "long" and last_price < self.stop_loss_price:
             logger.warning("Цена ниже стоп-лосса, закрываем LONG.")
-            loop = asyncio.get_event_loop()
-            loop.create_task(self.close_position())
+            # loop = asyncio.get_event_loop()
+            # loop.create_task(self.close_position())
+            asyncio.run_coroutine_threadsafe(self.close_position(), self.main_loop)
+
         elif self.position == "short" and last_price > self.stop_loss_price:
             logger.warning("Цена выше стоп-лосса, закрываем SHORT.")
-            loop = asyncio.get_event_loop()
-            loop.create_task(self.close_position())
+            # loop = asyncio.get_event_loop()
+            # loop.create_task(self.close_position())
+            asyncio.run_coroutine_threadsafe(self.close_position(), self.main_loop)
 
     @staticmethod
     def _quotation_to_float(q):
@@ -576,6 +581,11 @@ async def main():
         account_id=ACCOUNT_ID,
         figi=FIGI_IMOEXF,
     )
+
+    # 1) Grab the currently running event loop:
+    loop = asyncio.get_running_loop()
+    # 2) Store it on the bot instance for later use:
+    bot.main_loop = loop
 
     try:
         await bot.start()
