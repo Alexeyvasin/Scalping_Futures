@@ -34,16 +34,6 @@ COMMISSION_RATE = 0.00025  # 0,025% = 0.00025 за сделку. Учтём roun
 SPREAD_TICKS = 2  # Условно считаем 2 тика средним спредом (примеры!). Уточните шаг цены фьючерса!
 
 
-# def check_df(df_1, df_2):
-#     print("*df_1")
-#     print(df_1)
-#     print('______________')
-#     print("*df_2")
-#     print(df_2)
-#     print('______________________')
-#     # return pd.concat([df_1, df_2])
-#     return pd.DataFrame({**df_1, **df_2})
-
 class ScalpingBot:
     def __init__(self, token, account_id, figi):
         self.trading_active = None
@@ -96,7 +86,6 @@ class ScalpingBot:
             # Assume we have a method to extract balance from portfolio
             # return portfolio.total_amount_currencies.units  # Example, adjust as needed
             balance = portfolio.money[0].units
-            # print('*balance', balance)
             return balance
 
     def calculate_position_size(self, stop_distance):
@@ -188,13 +177,7 @@ class ScalpingBot:
                     if not pd.isna(new_row_df[col].iloc[0]):
                         self.df.loc[current_candle_time, col] = new_row_df[col].iloc[0]
             else:
-                # print('*self.df')
-                # print(self.df)
-                # print('------------------------------')
-                # print('*new_row_df')
-                # print(new_row_df)
-                # print('------------------------------')
-                # print('*res_df')
+
                 self.df = pd.concat([self.df, new_row_df])
                 # print(self.df)
 

@@ -145,6 +145,7 @@ class ScalpingBot:
         low_price = self._quotation_to_float(candle.low)
         volume_sales = candle.volume
         current_candle_time = pd.to_datetime(candle.time).to_datetime64()
+        print(current_candle_time)
 
         new_row = {
             "open": open_price,
