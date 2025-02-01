@@ -406,7 +406,11 @@ class ScalpingBot:
         try:
             closed_candle = self.df.loc[closed_candle_time_index]
             close_price = closed_candle["close"]
-            logger.info(f"Свеча {closed_candle_time} закрылась. Цена закрытия: {close_price}")
+            logger.info(f"Свеча {closed_candle_time} закрылась. "
+                        f" открытия: {closed_candle['open']}"
+                        f" макс: {closed_candle['high']}"
+                        f" мин: {closed_candle['low']}"
+                        f" закрытия: {close_price}")
 
             self._calculate_indicators()
             # Because we want to do trades (which are async now),

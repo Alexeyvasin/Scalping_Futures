@@ -1,5 +1,5 @@
 tinkoff:
-  figi: 'FUTIMOEXF000'
+  figi: 'BBG004730RP0' # 'FUTIMOEXF000'
 
 strategy:
   ema_fast_period: 9
