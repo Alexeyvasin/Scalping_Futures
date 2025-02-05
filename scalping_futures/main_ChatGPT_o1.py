@@ -25,6 +25,10 @@ from tinkoff.invest import (
 )
 from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
+from utils import config
+from utils import todays_candles_to_df
+from orders import open_position, post_stop_orders
+
 # ----------------------------------------------------------------
 # 1) Setup your "logs" folder and configure Python logging
 # ----------------------------------------------------------------
@@ -61,13 +65,12 @@ logger.addHandler(console_handler)
 # ----------------------------------------------------------------
 load_dotenv()
 
-
-def load_config(config_path="config.yml"):
-    with open(config_path, "r") as file:
-        return yaml.safe_load(file)
-
-
-config = load_config("config.yml")
+# def load_config(config_path="config.yml"):
+#     with open(config_path, "r") as file:
+#         return yaml.safe_load(file)
+#
+#
+# config = load_config("config.yml")
 
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
 ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
@@ -317,6 +320,9 @@ class ScalpingBot:
         retry_delay = 1
         max_retry_delay = 60
 
+        self.df = await todays_candles_to_df()  # getting a DataFrame with historical candles on today
+        # print(self.df.to_string())
+
         while self.trading_active:
             try:
                 # Run the blocking streaming in a background thread
@@ -413,6 +419,7 @@ class ScalpingBot:
                         f" закрытия: {close_price}")
 
             self._calculate_indicators()
+            print(self.df.to_string())
             # Because we want to do trades (which are async now),
             # we can schedule that with asyncio.create_task.
             # loop = asyncio.get_event_loop()
@@ -440,6 +447,12 @@ class ScalpingBot:
 
     async def _generate_signal_and_trade(self):
         """Асинхронная логика генерации сигналов + исполнение сделок."""
+
+        # Check we have enough data
+        if len(self.df) < self.ema_slow_period + 1:
+            logger.info("Not enough data for EMA calculations.")
+            return
+
         # Market regime filter
         market_regime = self.detect_market_regime()
         if market_regime == "ranging":
@@ -456,20 +469,16 @@ class ScalpingBot:
             logger.info("Outside of trading hours, skipping trade.")
             return
 
-        # Check we have enough data
-        if len(self.df) < self.ema_slow_period + 1:
-            logger.info("Not enough data for EMA calculations.")
-            return
-
         last_row = self.df.iloc[-1]
+        print('*last_row', last_row)
         ema_fast = last_row["EMA_fast"]
         ema_slow = last_row["EMA_slow"]
         rsi_value = last_row["RSI"]
         close_price = last_row["close"]
 
         logger.info(
-            f"[Generate Signal] EMA_fast={ema_fast:.2f}, "
-            f"EMA_slow={ema_slow:.2f}, RSI={rsi_value:.2f}"
+            f"[Generate Signal] EMA_fast={ema_fast:.3f}, "
+            f"EMA_slow={ema_slow:.3f}, RSI={rsi_value:.3f}"
         )
 
         prev_row = self.df.iloc[-2]
@@ -484,25 +493,40 @@ class ScalpingBot:
         short_signal = False
         if prev_ema_fast > prev_ema_slow and ema_fast < ema_slow and rsi_value > 30:
             short_signal = True
-
+        quantity = config['strategy']['max_contracts']
         # Position handling logic
-        if self.position == "long":
-            if short_signal:
-                await self.close_position()
-                await self.open_position(direction="SHORT", current_price=close_price)
-            else:
-                self._update_stop_loss()
-        elif self.position == "short":
-            if long_signal:
-                await self.close_position()
-                await self.open_position(direction="LONG", current_price=close_price)
-            else:
-                self._update_stop_loss()
-        else:
-            if long_signal:
-                await self.open_position(direction="LONG", current_price=close_price)
-            elif short_signal:
-                await self.open_position(direction="SHORT", current_price=close_price)
+        # if self.position == "long":
+        #     if short_signal:
+        #         await self.close_position()
+        #         await self.open_position(direction="SHORT", current_price=close_price)
+        #     else:
+        #         self._update_stop_loss()
+        # elif self.position == "short":
+        #     if long_signal:
+        #         await self.close_position()
+        #         await self.open_position(direction="LONG", current_price=close_price)
+        #     else:
+        #         self._update_stop_loss()
+        # else:
+        if long_signal:
+            # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
+            resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
+            logger.info(f'[commit buy order] {resp}')
+            if resp:
+                self.position = 'long'
+            take_profit, stop_loss = await post_stop_orders()
+            logger.info(take_profit)
+            logger.info(stop_loss)
+
+        elif short_signal:
+            # await self.open_position(direction="SHORT", current_price=close_price)# chatGPT
+            resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
+            logger.info(f'[commit sell order] {resp}')
+            if resp:
+                self.position = 'short'
+            take_profit, stop_loss = await post_stop_orders()
+            logger.info(take_profit)
+            logger.info(stop_loss)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""
@@ -542,74 +566,78 @@ class ScalpingBot:
         return q.units + q.nano / 1e9 if q else 0.0
 
     def detect_market_regime(self):
-        """Возвращает 'ranging' или 'trending' (или 'unknown')."""
-        df = self.df
-        if len(df) < self.ema_slow_period + 1:
-            return "unknown"
-        ema_slope = df["EMA_slow"].diff().mean()
-        if abs(ema_slope) < 0.01:
-            return "ranging"
-        else:
-            return "trending"
+        return 'trending'
+        # """Возвращает 'ranging' или 'trending' (или 'unknown')."""
+        # df = self.df
+        # if len(df) < self.ema_slow_period + 1:
+        #     return "unknown"
+        # ema_slope = df["EMA_slow"].diff().mean()
+        # if abs(ema_slope) < 0.01:
+        #     return "ranging"
+        # else:
+        #     return "trending"
 
     def is_volatile_enough(self):
-        """
-        Checks if the market is volatile enough to trade using a more realistic ATR(14) calculation.
-
-        1. True Range (TR) = max(
-             current_high - current_low,
-             abs(current_high - previous_close),
-             abs(current_low - previous_close)
-           )
-        2. ATR(14) = rolling mean of TR over the last 14 candles.
-        3. Compare ATR(14) to a fraction of the latest closing price (e.g. 0.5%).
-        """
-        df = self.df
-
-        # Need at least 15 rows to properly compute a 14-period ATR (TR depends on previous close).
-        if len(df) < 15:
-            logging.info('Not enough candles')
-            return False
-
-        # Make sure we have a "PrevClose" column to use in True Range calculations:
-        if "PrevClose" not in df.columns:
-            df["PrevClose"] = df["close"].shift(1)
-
-        # Calculate True Range for each row:
-        # TR = max( (high-low), |high - prev_close|, |low - prev_close| )
-        df["TR"] = df.apply(
-            lambda row: max(
-                row["high"] - row["low"],
-                abs(row["high"] - row["PrevClose"]),
-                abs(row["low"] - row["PrevClose"])
-            ),
-            axis=1
-        )
-
-        # Compute the 14-period Average True Range (rolling mean or ewm is typical; here we use rolling mean)
-        df["ATR_14"] = df["TR"].rolling(window=14).mean()
-
-        # Get the latest computed ATR
-        current_atr = df["ATR_14"].iloc[-1]
-
-        # Also get the latest close price
-        last_close_price = df["close"].iloc[-1]
-        if last_close_price <= 0:
-            # If price is invalid or zero, can't proceed
-            return False
-
-        # Define a threshold. For example:
-        # require the ATR to be at least 0.5% of the current close (i.e. 0.005 * close_price)
-        threshold = 0.005 * last_close_price
-
-        # Return True if the market is sufficiently volatile:
-        return current_atr > threshold
+        return True
+        # """
+        # Checks if the market is volatile enough to trade using a more realistic ATR(14) calculation.
+        #
+        # 1. True Range (TR) = max(
+        #      current_high - current_low,
+        #      abs(current_high - previous_close),
+        #      abs(current_low - previous_close)
+        #    )
+        # 2. ATR(14) = rolling mean of TR over the last 14 candles.
+        # 3. Compare ATR(14) to a fraction of the latest closing price (e.g. 0.5%).
+        # """
+        # df = self.df
+        #
+        # # Need at least 15 rows to properly compute a 14-period ATR (TR depends on previous close).
+        # if len(df) < 15:
+        #     logging.info('Not enough candles')
+        #     return False
+        #
+        # # Make sure we have a "PrevClose" column to use in True Range calculations:
+        # if "PrevClose" not in df.columns:
+        #     df["PrevClose"] = df["close"].shift(1)
+        #
+        # # Calculate True Range for each row:
+        # # TR = max( (high-low), |high - prev_close|, |low - prev_close| )
+        # df["TR"] = df.apply(
+        #     lambda row: max(
+        #         row["high"] - row["low"],
+        #         abs(row["high"] - row["PrevClose"]),
+        #         abs(row["low"] - row["PrevClose"])
+        #     ),
+        #     axis=1
+        # )
+        #
+        # # Compute the 14-period Average True Range (rolling mean or ewm is typical; here we use rolling mean)
+        # df["ATR_14"] = df["TR"].rolling(window=14).mean()
+        #
+        # # Get the latest computed ATR
+        # current_atr = df["ATR_14"].iloc[-1]
+        #
+        # # Also get the latest close price
+        # last_close_price = df["close"].iloc[-1]
+        # if last_close_price <= 0:
+        #     # If price is invalid or zero, can't proceed
+        #     return False
+        #
+        # # Define a threshold. For example:
+        # # require the ATR to be at least 0.5% of the current close (i.e. 0.005 * close_price)
+        # threshold = 0.005 * last_close_price
+        #
+        # # Return True if the market is sufficiently volatile:
+        # return current_atr > threshold
 
     def is_trading_time(self):
         """Пример: 9:00–16:00 UTC."""
-        current_time = datetime.datetime.utcnow().time()
-        start_time = datetime.time(9, 0)  # 09:00 UTC
-        end_time = datetime.time(16, 0)  # 16:00 UTC
+        # current_time = datetime.datetime.utcnow().time()
+        current_time = datetime.datetime.now(datetime.UTC).time()
+        print('*curr_time UTC: ', current_time)
+        start_time = datetime.time(6, 0)  # 09:00 UTC
+        end_time = datetime.time(18, 0)  # 16:00 UTC
         return start_time <= current_time <= end_time
 
     def update_performance_metrics(self):
