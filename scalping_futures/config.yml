@@ -14,3 +14,10 @@ strategy:
   commission_rate: 0.00025
   spread_ticks: 2
   stop_percent: 0.2
+
+rsi:
+  for_sell: 80
+  for_buy: 20
+  for_close:
+    - 30
+    - 70

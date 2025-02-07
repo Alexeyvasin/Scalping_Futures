@@ -1,15 +1,11 @@
 import asyncio
-import yaml
-import time
 import random
 import pandas as pd
-import os
-import logging
-from logging.handlers import TimedRotatingFileHandler
 from os import getenv
 from dotenv import load_dotenv
 import datetime
 
+from tinkoff.invest.schemas import OrderStateStreamRequest
 from tinkoff.invest.utils import now
 from tinkoff.invest import (
     Client,
@@ -21,63 +17,57 @@ from tinkoff.invest import (
     SubscriptionAction,
     PostOrderRequest,
     CandleInstrument,
-    SubscriptionInterval,
+    SubscriptionInterval, AsyncClient,
 )
 from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
-from utils import config
-from utils import todays_candles_to_df
-from orders import open_position, post_stop_orders
+from utils import todays_candles_to_df, get_data
+from orders import open_position, post_stop_orders, post_take_profit
+import settings as s
+from subscribers import orders_subscriber, rsi_subscriber
 
 # ----------------------------------------------------------------
 # 1) Setup your "logs" folder and configure Python logging
 # ----------------------------------------------------------------
-os.makedirs("logs", exist_ok=True)  # Create "logs" dir if not exists
-
-# Create a logger
-logger = logging.getLogger("ScalpingBot")
-logger.setLevel(logging.INFO)
-
-# TimedRotatingFileHandler rotates logs at midnight each day
-log_file_path = "logs/scalping"  # base file name in logs/ folder
-handler = TimedRotatingFileHandler(
-    filename=log_file_path,
-    when="midnight",
-    interval=1,
-    backupCount=7,  # keep last 7 log files (for example)
-    encoding="utf-8",
-)
-# By default, the rotation creates files like "scalping.2025-01-30.log"
-handler.suffix = "%Y-%m-%d.log"
-
-# Format logs: date-time, level, message
-formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
-handler.setFormatter(formatter)
-
-# (Optional) Also log to the console
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(formatter)
-
-logger.addHandler(handler)
-logger.addHandler(console_handler)
+# os.makedirs("logs", exist_ok=True)  # Create "logs" dir if not exists
+#
+# # Create a logger
+# logger = logging.getLogger("ScalpingBot")
+# logger.setLevel(logging.INFO)
+#
+# # TimedRotatingFileHandler rotates logs at midnight each day
+# log_file_path = "logs/scalping"  # base file name in logs/ folder
+# handler = TimedRotatingFileHandler(
+#     filename=log_file_path,
+#     when="midnight",
+#     interval=1,
+#     backupCount=7,  # keep last 7 log files (for example)
+#     encoding="utf-8",
+# )
+# # By default, the rotation creates files like "scalping.2025-01-30.log"
+# handler.suffix = "%Y-%m-%d.log"
+#
+# # Format logs: date-time, level, message
+# formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
+# handler.setFormatter(formatter)
+#
+# # (Optional) Also log to the console
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.INFO)
+# console_handler.setFormatter(formatter)
+#
+# logger.addHandler(handler)
+# logger.addHandler(console_handler)
 
 # ----------------------------------------------------------------
 load_dotenv()
 
-# def load_config(config_path="config.yml"):
-#     with open(config_path, "r") as file:
-#         return yaml.safe_load(file)
-#
-#
-# config = load_config("config.yml")
-
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
 ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
-FIGI = config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточните при необходимости)
+FIGI = s.config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточните при необходимости)
 
-COMMISSION_RATE = config['strategy']['commission_rate']  # Пример: 0.025% (round-turn => 0.0005)
-SPREAD_TICKS = config['strategy']['spread_ticks']  # Пример: 2 тика
+COMMISSION_RATE = s.config['strategy']['commission_rate']  # Пример: 0.025% (round-turn => 0.0005)
+SPREAD_TICKS = s.config['strategy']['spread_ticks']  # Пример: 2 тика
 
 
 class ScalpingBot:
@@ -99,24 +89,26 @@ class ScalpingBot:
         self.order_id = None
         self.stop_loss_price = None
         self.last_signal = None
+        self.futures_quantity = None
+        self.order_prices = None
 
         # Параметры индикаторов
-        self.ema_fast_period = config['strategy']['ema_fast_period']
-        self.ema_slow_period = config['strategy']['ema_slow_period']
-        self.rsi_period = config['strategy']['rsi_period']
+        self.ema_fast_period = s.config['strategy']['ema_fast_period']
+        self.ema_slow_period = s.config['strategy']['ema_slow_period']
+        self.rsi_period = s.config['strategy']['rsi_period']
 
         # Торговые параметры
-        self.lot_size = config['strategy']['lot_size']
-        self.max_contracts = config['strategy']['max_contracts']
+        self.lot_size = s.config['strategy']['lot_size']
+        self.max_contracts = s.config['strategy']['max_contracts']
 
-        self.max_drawdown = config['strategy']['max_drawdown']  # 10%
-        self.daily_loss_limit = config['strategy']['daily_loss_limit']  # 2%
+        self.max_drawdown = s.config['strategy']['max_drawdown']  # 10%
+        self.daily_loss_limit = s.config['strategy']['daily_loss_limit']  # 2%
         self.daily_loss = 0
 
         # Считаем начальный баланс (блокирующий вызов, оборачиваем в to_thread когда нужно)
         self.starting_balance = self.get_account_balance_sync()
         self.current_balance = self.starting_balance
-        self.risk_per_trade = config['strategy']['risk_per_trade']  # 1%
+        self.risk_per_trade = s.config['strategy']['risk_per_trade']  # 1%
 
         # Метрики продуктивности
         self.trades_history = []
@@ -160,7 +152,7 @@ class ScalpingBot:
             order_type=OrderType.ORDER_TYPE_MARKET,
             order_id=self.order_id,
         )
-        logger.info(f"Открываем позицию {direction}. Ордер {self.order_id}...")
+        s.logger.info(f"Открываем позицию {direction}. Ордер {self.order_id}...")
 
         with Client(self.token) as client:
             order_response = client.orders.post_order(request=request)
@@ -176,7 +168,7 @@ class ScalpingBot:
         else:
             self.stop_loss_price = current_price + stop_offset
 
-        logger.info(
+        s.logger.info(
             f"Позиция {self.position} открыта ~{self.entry_price:.2f}, "
             f"стоп-лосс {self.stop_loss_price:.2f}"
         )
@@ -193,7 +185,7 @@ class ScalpingBot:
         )
         close_order_id = f"close_{now().timestamp()}"
 
-        logger.info(f"Закрываем позицию {self.position} рыночным ордером {close_order_id}...")
+        s.logger.info(f"Закрываем позицию {self.position} рыночным ордером {close_order_id}...")
 
         with Client(self.token) as client:
             request = PostOrderRequest(
@@ -224,7 +216,7 @@ class ScalpingBot:
             if real_pnl > 0:
                 self.winning_trades += 1
 
-            logger.info(
+            s.logger.info(
                 f"PnL (предварительный) = {pnl:.3f}, "
                 f"комиссия ~{comm:.3f}, итого ~{real_pnl:.3f}"
             )
@@ -246,17 +238,27 @@ class ScalpingBot:
         self.current_balance = self.get_account_balance_sync()
         drawdown = (self.starting_balance - self.current_balance) / self.starting_balance
         if drawdown > self.max_drawdown:
-            logger.warning("Max drawdown exceeded, stopping trading.")
+            s.logger.warning("Max drawdown exceeded, stopping trading.")
             self.stop_trading()
 
         daily_loss = (self.starting_balance - self.current_balance) / self.starting_balance
         if daily_loss > self.daily_loss_limit:
-            logger.warning("Daily loss limit exceeded, stopping trading for today.")
+            s.logger.warning("Daily loss limit exceeded, stopping trading for today.")
             self.stop_trading()
 
     # ----------------------------------------------------------
     # Asynchronous methods
     # ----------------------------------------------------------
+
+    async def update_data(self):
+        futures_quantity, orders_prices = await get_data()
+
+        self.futures_quantity = futures_quantity
+        self.order_prices = orders_prices
+        s.logger.info(f'[futures_quantity] {futures_quantity}')
+        s.logger.info(f'[orders_prices] {orders_prices}')
+
+
     async def get_account_balance(self):
         """Asynchronously get account balance by delegating to a thread."""
         return await asyncio.to_thread(self.get_account_balance_sync)
@@ -279,6 +281,18 @@ class ScalpingBot:
         """Wrap synchronous method in asyncio.to_thread."""
         await asyncio.to_thread(self.update_balance_and_check_limits_sync)
 
+    async def events_orders(self):
+        async with AsyncClient(TOKEN) as client:
+            request = OrderStateStreamRequest()
+            request.accounts = [ACCOUNT_ID]
+            stream = client.orders_stream.order_state_stream(request=request)
+            order_request_id = None
+            async for order_state in stream:
+                if order_state.order_state and order_state.order_state.order_request_id != order_request_id:
+                    order_request_id = order_state.order_state.order_request_id
+                    s.order_event.set()
+                    s.logger.info(f'[events_orders] order {order_request_id} HAPPENED!')
+
     # ----------------------------------------------------------
     # The core streaming loop, run in a thread
     # ----------------------------------------------------------
@@ -300,7 +314,7 @@ class ScalpingBot:
             )
             market_data_stream.subscribe(subscribe_request)
 
-            logger.info("Запущен стрим. Ожидаем новые свечи...")
+            s.logger.info("Запущен стрим. Ожидаем новые свечи...")
 
             # Blocking iteration:
             for marketdata in market_data_stream:
@@ -312,29 +326,34 @@ class ScalpingBot:
                     self.on_new_candle(candle)
 
             # If the for-loop exits naturally, it means the stream ended
-            logger.warning("Stream ended or disconnected from Tinkoff")
+            s.logger.warning("Stream ended or disconnected from Tinkoff")
 
     async def start(self):
         """Запуск бота (асинхронно): подписка на минутные свечи и обработка данных."""
         self.trading_active = True
         retry_delay = 1
         max_retry_delay = 60
-
+        await self.update_data()
         self.df = await todays_candles_to_df()  # getting a DataFrame with historical candles on today
         # print(self.df.to_string())
 
         while self.trading_active:
             try:
                 # Run the blocking streaming in a background thread
-                await asyncio.to_thread(self._run_stream_loop)
+                await asyncio.gather(
+                    asyncio.to_thread(self._run_stream_loop),
+                    self.events_orders(),
+                    orders_subscriber(s.order_event, self),
+                    rsi_subscriber(s.rsi_event, self),
+                )
 
                 # If we exit the loop, it means the stream ended or we broke out
                 # We'll try to reconnect (unless self.trading_active was set to False)
                 if self.trading_active:
-                    logger.warning("Stream ended unexpectedly, will try to reconnect")
+                    s.logger.warning("Stream ended unexpectedly, will try to reconnect")
             except Exception as e:
-                logger.error(f"Error in stream processing: {type(e)} {e}")
-                logger.info(f"Will retry after {retry_delay} seconds...")
+                s.logger.error(f"Error in stream processing: {type(e)} {e}")
+                s.logger.info(f"Will retry after {retry_delay} seconds...")
                 await asyncio.sleep(retry_delay)
 
                 # Exponential backoff + jitter
@@ -364,9 +383,12 @@ class ScalpingBot:
         expected_columns = ["open", "close", "high", "low", "volume", "EMA_fast", "EMA_slow", "RSI"]
         for col in expected_columns:
             if col not in self.df.columns:
-                self.df[col] = pd.NA
+                self.df[col] = float('nan')
+        # print(f'Before s.rsi_event.set {s.rsi_event.is_set()}')
+        # s.rsi_event.set()
+        # print(f'After s.rsi_event.ser {s.rsi_event.is_set()}')
 
-        # logger.info(
+        # s.logger.info(
         #     f"Incoming candle data: {current_candle_time}, "
         #     f"{open_price}, {close_price}, {high_price}, {low_price}, {volume_sales}"
         # )
@@ -377,9 +399,9 @@ class ScalpingBot:
             "high": high_price,
             "low": low_price,
             "volume": volume_sales,
-            "EMA_fast": pd.NA,
-            "EMA_slow": pd.NA,
-            "RSI": pd.NA,
+            "EMA_fast": float('nan'),
+            "EMA_slow": float('nan'),
+            "RSI": float('nan'),
         }
         new_row_df = pd.DataFrame([new_row], index=[current_candle_time])
 
@@ -392,7 +414,11 @@ class ScalpingBot:
             else:
                 self.df = pd.concat([self.df, new_row_df])
 
-        logger.debug(f"Updated DataFrame tail:\n{self.df.tail()}")
+        s.logger.debug(f"Updated DataFrame tail:\n{self.df.tail()}")
+        # print(f'before s.rsi_event.set {s.rsi_event.is_set()}')
+        s.rsi_event.set()
+        # print(f'after s.rsi_event.set() {s.rsi_event.is_set()}')
+        # print(self.df.tail(n=2))
 
         # Keep only 500 last rows
         if len(self.df) > 500:
@@ -412,21 +438,20 @@ class ScalpingBot:
         try:
             closed_candle = self.df.loc[closed_candle_time_index]
             close_price = closed_candle["close"]
-            logger.info(f"Свеча {closed_candle_time} закрылась. "
-                        f" открытия: {closed_candle['open']}"
-                        f" макс: {closed_candle['high']}"
-                        f" мин: {closed_candle['low']}"
-                        f" закрытия: {close_price}")
-
+            # s.logger.info(f"Свеча {closed_candle_time} закрылась. "
+            #             f" открытия: {closed_candle['open']}"
+            #             f" макс: {closed_candle['high']}"
+            #             f" мин: {closed_candle['low']}"
+            #             f" закрытия: {close_price}")
             self._calculate_indicators()
-            print(self.df.to_string())
+            # print(self.df.to_string())
             # Because we want to do trades (which are async now),
             # we can schedule that with asyncio.create_task.
             # loop = asyncio.get_event_loop()
             # loop.create_task(self._generate_signal_and_trade())
             asyncio.run_coroutine_threadsafe(self._generate_signal_and_trade(), self.main_loop)
         except KeyError as e:
-            logger.error(f"KeyError accessing dataframe during candle closing: {e}")
+            s.logger.error(f"KeyError accessing dataframe during candle closing: {e}")
 
     def _calculate_indicators(self):
         """Расчёт EMA9, EMA21, RSI."""
@@ -437,49 +462,52 @@ class ScalpingBot:
         delta = df["close"].diff()
         up = delta.clip(lower=0)
         down = -1 * delta.clip(upper=0)
-        roll_up = up.rolling(self.rsi_period).mean()
-        roll_down = down.rolling(self.rsi_period).mean()
+        # roll_up = up.rolling(self.rsi_period).mean()
+        roll_up = up.ewm(span=self.rsi_period, adjust=False).mean()
+        roll_down = down.ewm(span=self.rsi_period, adjust=False).mean()
+
+        # roll_down = down.rolling(self.rsi_period).mean()
         rs = roll_up / roll_down
         df["RSI"] = 100.0 - (100.0 / (1.0 + rs))
 
-        logger.debug("Indicators updated:")
-        logger.debug(df[["EMA_fast", "EMA_slow", "RSI"]].tail())
+        s.logger.debug("Indicators updated:")
+        s.logger.debug(df[["EMA_fast", "EMA_slow", "RSI"]].tail())
 
     async def _generate_signal_and_trade(self):
         """Асинхронная логика генерации сигналов + исполнение сделок."""
 
         # Check we have enough data
         if len(self.df) < self.ema_slow_period + 1:
-            logger.info("Not enough data for EMA calculations.")
+            s.logger.info("Not enough data for EMA calculations.")
             return
 
         # Market regime filter
         market_regime = self.detect_market_regime()
         if market_regime == "ranging":
-            logger.info("Market is ranging, skipping trade.")
+            s.logger.info("Market is ranging, skipping trade.")
             return
 
         # Volatility filter
         if not self.is_volatile_enough():
-            logger.info("Market volatility is too low, skipping trade.")
+            s.logger.info("Market volatility is too low, skipping trade.")
             return
 
         # Time-based filter
         if not self.is_trading_time():
-            logger.info("Outside of trading hours, skipping trade.")
+            s.logger.info("Outside of trading hours, skipping trade.")
             return
 
         last_row = self.df.iloc[-1]
-        print('*last_row', last_row)
+        # print('*last_row', last_row)
         ema_fast = last_row["EMA_fast"]
         ema_slow = last_row["EMA_slow"]
         rsi_value = last_row["RSI"]
         close_price = last_row["close"]
 
-        logger.info(
-            f"[Generate Signal] EMA_fast={ema_fast:.3f}, "
-            f"EMA_slow={ema_slow:.3f}, RSI={rsi_value:.3f}"
-        )
+        # s.logger.info(
+        #     f"[Generate Signal] EMA_fast={ema_fast:.3f}, "
+        #     f"EMA_slow={ema_slow:.3f}, RSI={rsi_value:.3f}"
+        # )
 
         prev_row = self.df.iloc[-2]
         prev_ema_fast = prev_row["EMA_fast"]
@@ -487,20 +515,20 @@ class ScalpingBot:
 
         # Detect signals
         long_signal = False
+        short_signal = False
         if prev_ema_fast < prev_ema_slow and ema_fast > ema_slow and rsi_value < 70:
             long_signal = True
-
-        short_signal = False
-        if prev_ema_fast > prev_ema_slow and ema_fast < ema_slow and rsi_value > 30:
+        elif prev_ema_fast > prev_ema_slow and ema_fast < ema_slow and rsi_value > 30:
             short_signal = True
-        quantity = config['strategy']['max_contracts']
+        quantity = s.config['strategy']['max_contracts']
         # Position handling logic
-        # if self.position == "long":
+        # if self.futures_quantity > 0: # there is long positions
         #     if short_signal:
         #         await self.close_position()
         #         await self.open_position(direction="SHORT", current_price=close_price)
         #     else:
         #         self._update_stop_loss()
+        #     await self.update_data()
         # elif self.position == "short":
         #     if long_signal:
         #         await self.close_position()
@@ -510,23 +538,36 @@ class ScalpingBot:
         # else:
         if long_signal:
             # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
+            quantity = quantity - self.futures_quantity
+            if quantity <= 0:
+                return
             resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
-            logger.info(f'[commit buy order] {resp}')
+            s.logger.info(f'[commit buy order] {resp}')
+            await asyncio.sleep(10)
+            await self.update_data()
             if resp:
                 self.position = 'long'
-            take_profit, stop_loss = await post_stop_orders()
-            logger.info(take_profit)
-            logger.info(stop_loss)
+            take_profit, stop_loss = await post_stop_orders(self)
+            s.logger.info(f'[take_profit] {take_profit}')
+            s.logger.info(f'[stop_loss] {stop_loss}')
+
 
         elif short_signal:
+            quantity = quantity + self.futures_quantity
+            if quantity <= 0:
+                return
             # await self.open_position(direction="SHORT", current_price=close_price)# chatGPT
             resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
-            logger.info(f'[commit sell order] {resp}')
+            s.logger.info(f'[commit sell order] {resp}')
+            await asyncio.sleep(10)
+            await self.update_data()
             if resp:
                 self.position = 'short'
-            take_profit, stop_loss = await post_stop_orders()
-            logger.info(take_profit)
-            logger.info(stop_loss)
+            take_profit, stop_loss = await post_stop_orders(self)
+            s.logger.info(f'[take_profit] {take_profit}')
+            s.logger.info(f'[stop_loss] {stop_loss}')
+
+
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""
@@ -545,18 +586,18 @@ class ScalpingBot:
                 new_stop = potential_stop
 
         if new_stop:
-            logger.info(f"Трейлинг стоп-лосс c {self.stop_loss_price:.2f} до {new_stop:.2f}")
+            s.logger.info(f"Трейлинг стоп-лосс c {self.stop_loss_price:.2f} до {new_stop:.2f}")
             self.stop_loss_price = new_stop
 
         # Стоп выбит?
         if self.position == "long" and last_price < self.stop_loss_price:
-            logger.warning("Цена ниже стоп-лосса, закрываем LONG.")
+            s.logger.warning("Цена ниже стоп-лосса, закрываем LONG.")
             # loop = asyncio.get_event_loop()
             # loop.create_task(self.close_position())
             asyncio.run_coroutine_threadsafe(self.close_position(), self.main_loop)
 
         elif self.position == "short" and last_price > self.stop_loss_price:
-            logger.warning("Цена выше стоп-лосса, закрываем SHORT.")
+            s.logger.warning("Цена выше стоп-лосса, закрываем SHORT.")
             # loop = asyncio.get_event_loop()
             # loop.create_task(self.close_position())
             asyncio.run_coroutine_threadsafe(self.close_position(), self.main_loop)
@@ -635,16 +676,15 @@ class ScalpingBot:
         """Пример: 9:00–16:00 UTC."""
         # current_time = datetime.datetime.utcnow().time()
         current_time = datetime.datetime.now(datetime.UTC).time()
-        print('*curr_time UTC: ', current_time)
         start_time = datetime.time(6, 0)  # 09:00 UTC
-        end_time = datetime.time(18, 0)  # 16:00 UTC
+        end_time = datetime.time(21, 0)  # 16:00 UTC
         return start_time <= current_time <= end_time
 
     def update_performance_metrics(self):
         """Обновляем винрейт и печатаем статистику."""
         if self.total_trades > 0:
             self.win_rate = self.winning_trades / self.total_trades
-        logger.info(f"Win Rate: {self.win_rate:.2%}, Daily PnL: {self.daily_pnl:.2f}")
+        s.logger.info(f"Win Rate: {self.win_rate:.2%}, Daily PnL: {self.daily_pnl:.2f}")
 
     def reset_daily_metrics(self):
         """Сбросить ежедневные метрики."""
@@ -676,11 +716,11 @@ async def main():
     try:
         await bot.start()
     except KeyboardInterrupt:
-        logger.info("Остановка бота по Ctrl+C")
+        s.logger.info("Остановка бота по Ctrl+C")
     except ValueError as exc:
-        logger.error(f"Произошла ошибка ValueError: {exc}")
+        s.logger.error(f"Произошла ошибка ValueError: {exc}")
     except Exception as e:
-        logger.exception(f"Произошла непредвиденная ошибка: {type(e)} {e}")
+        s.logger.exception(f"Произошла непредвиденная ошибка: {type(e)} {e}")
     finally:
         # If needed, ensure we stop everything gracefully
         bot.stop_trading()

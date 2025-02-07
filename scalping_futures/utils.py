@@ -3,27 +3,21 @@ from pprint import pprint
 import pandas as pd
 import os
 import datetime
-import yaml
 import asyncio
 from dotenv import load_dotenv
 
 from tinkoff.invest import (
     AsyncClient,
     Quotation,
-    Client,
+    Client, OperationType,
 )
 from tinkoff.invest.async_services import AsyncServices
 from tinkoff.invest.utils import now
 from tinkoff.invest.services import CandleInterval
+from settings import config
 
 load_dotenv()
 
-
-def load_config(config_path="config.yml"):
-    with open(config_path, "r") as file:
-        return yaml.safe_load(file)
-
-config = load_config("config.yml")
 
 TOKEN = os.getenv('TINKOFF_TOKEN')
 ACCOUNT_ID = os.getenv('ACCOUNT_ID')
@@ -127,11 +121,26 @@ async def todays_candles_to_df() -> pd.DataFrame:
         df = on_historical_candle(future_candle, df)
     return df
 
+async def get_data():
+    async with AsyncClient(TOKEN) as client:
+        positions_task = client.operations.get_positions(account_id=ACCOUNT_ID)
+        operations_task = client.operations.get_operations(account_id=ACCOUNT_ID)
+
+        positions, operations = await asyncio.gather(positions_task, operations_task)
+        futures_quantity = 0 if not positions.futures else positions.futures[0].balance
+        orders_prices = []
+        for operation in operations.operations:
+            if len(orders_prices) >= abs(futures_quantity):
+                break
+            if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
+                orders_prices.append(operation.price)
+        return futures_quantity, tuple(orders_prices)
+
+async def main():
+    positions, prices = await get_data()
+    pprint(positions)
+    pprint(prices)
 
 if __name__ == '__main__':
-    take_profit, stop_loss = change_quotation(
-        Quotation(units=3, nano=123000000)
-    )
-    print(take_profit)
-    print(stop_loss)
+    asyncio.run(main())
 
