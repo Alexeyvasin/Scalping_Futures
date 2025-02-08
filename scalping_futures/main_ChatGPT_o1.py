@@ -22,7 +22,7 @@ from tinkoff.invest import (
 from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
 from utils import todays_candles_to_df, get_data
-from orders import open_position, post_stop_orders, post_take_profit
+from orders import open_position, post_stop_orders, get_stop_orders
 import settings as s
 from subscribers import orders_subscriber, rsi_subscriber
 
@@ -257,7 +257,6 @@ class ScalpingBot:
         self.order_prices = orders_prices
         s.logger.info(f'[futures_quantity] {futures_quantity}')
         s.logger.info(f'[orders_prices] {orders_prices}')
-
 
     async def get_account_balance(self):
         """Asynchronously get account balance by delegating to a thread."""
@@ -566,8 +565,6 @@ class ScalpingBot:
             take_profit, stop_loss = await post_stop_orders(self)
             s.logger.info(f'[take_profit] {take_profit}')
             s.logger.info(f'[stop_loss] {stop_loss}')
-
-
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""

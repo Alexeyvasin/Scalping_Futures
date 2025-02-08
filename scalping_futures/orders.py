@@ -14,7 +14,7 @@ from tinkoff.invest import (
     OperationType, PostStopOrderResponse,
     PostStopOrderRequestTrailingData,
 )
-from tinkoff.invest.schemas import OrderStateStreamRequest
+from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersResponse
 from tinkoff.invest.async_services import AsyncServices, PostOrderAsyncRequest
 
 from utils import TOKEN, FIGI, ACCOUNT_ID, INSTRUMENT_ID, change_quotation
@@ -144,18 +144,13 @@ async def post_stop_orders(bot) -> tuple[PostStopOrderResponse, PostStopOrderRes
 
 async def get_stop_orders():
     async with AsyncClient(TOKEN) as client:
-        resp = await client.stop_orders.get_stop_orders(
+        resp: GetStopOrdersResponse  = await client.stop_orders.get_stop_orders(
             account_id=ACCOUNT_ID
         )
-    return resp
-
-class MockBot:
-    futures_quantity = -1
-    order_prices = [Quotation(units=3, nano=327000000)]
+    return resp.stop_orders
 
 async def main():
-    bot = MockBot()
-    stop_orders = await asyncio.gather(post_stop_orders(bot))
+    stop_orders = await asyncio.gather(get_stop_orders())
     pprint(stop_orders)
 
 
