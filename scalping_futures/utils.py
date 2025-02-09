@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from tinkoff.invest import (
     AsyncClient,
     Quotation,
-    Client, OperationType,
+    Client, OperationType, RequestError,
 )
 from tinkoff.invest.async_services import AsyncServices
 from tinkoff.invest.utils import now
@@ -26,7 +26,10 @@ INSTRUMENT_ID = config['tinkoff']['instrument_id']
 
 def load_future():
     with Client(TOKEN) as client:
-        return client.instruments.future_by(id_type=3, id=INSTRUMENT_ID).instrument
+        try:
+            return client.instruments.future_by(id_type=3, id=INSTRUMENT_ID).instrument
+        except Exception:
+            return client.instruments.share_by(id_type=3, id=INSTRUMENT_ID).instrument
 
 FUTURE = load_future()
 

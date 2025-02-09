@@ -5,6 +5,7 @@ from os import getenv
 from dotenv import load_dotenv
 import datetime
 
+from tinkoff.invest.market_data_stream.async_market_data_stream_manager import AsyncMarketDataStreamManager
 from tinkoff.invest.schemas import OrderStateStreamRequest
 from tinkoff.invest.utils import now
 from tinkoff.invest import (
@@ -327,6 +328,34 @@ class ScalpingBot:
             # If the for-loop exits naturally, it means the stream ended
             s.logger.warning("Stream ended or disconnected from Tinkoff")
 
+    async def  _run_stream_loop_async(self):
+        async with AsyncClient(self.token) as  client:
+            market_data_stream: AsyncMarketDataStreamManager = client.create_market_data_stream()
+
+            subscribe_request = MarketDataRequest(
+                subscribe_candles_request=SubscribeCandlesRequest(
+                    subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
+                    instruments=[
+                        CandleInstrument(
+                            figi=self.figi,
+                            interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
+                        )
+                    ],
+                )
+            )
+            market_data_stream.subscribe(subscribe_request)
+            async for marketdata in market_data_stream:
+                if not self.trading_active:
+                    # If we decided to stop while streaming, break
+                    break
+                if marketdata.candle is not None:
+                    candle = marketdata.candle
+                    self.on_new_candle(candle)
+
+            # If the for-loop exits naturally, it means the stream ended
+            s.logger.warning("Stream ended or disconnected from Tinkoff")
+
+
     async def start(self):
         """Запуск бота (асинхронно): подписка на минутные свечи и обработка данных."""
         self.trading_active = True
@@ -340,7 +369,8 @@ class ScalpingBot:
             try:
                 # Run the blocking streaming in a background thread
                 await asyncio.gather(
-                    asyncio.to_thread(self._run_stream_loop),
+                    # asyncio.to_thread(self._run_stream_loop),
+                    self._run_stream_loop_async(),
                     self.events_orders(),
                     orders_subscriber(s.order_event, self),
                     rsi_subscriber(s.rsi_event, self),
@@ -414,9 +444,9 @@ class ScalpingBot:
                 self.df = pd.concat([self.df, new_row_df])
 
         s.logger.debug(f"Updated DataFrame tail:\n{self.df.tail()}")
-        # print(f'before s.rsi_event.set {s.rsi_event.is_set()}')
+        print(f'before s.rsi_event.set {s.rsi_event.is_set()}')
         s.rsi_event.set()
-        # print(f'after s.rsi_event.set() {s.rsi_event.is_set()}')
+        print(f'after s.rsi_event.set() {s.rsi_event.is_set()}')
         # print(self.df.tail(n=2))
 
         # Keep only 500 last rows
