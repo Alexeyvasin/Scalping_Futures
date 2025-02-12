@@ -1,9 +1,11 @@
 import asyncio
+import decimal
 import random
 import time
 import uuid
 from pprint import pprint
 
+import pandas
 from tinkoff.invest.utils import now
 from tinkoff.invest import (
     AsyncClient,
@@ -23,44 +25,25 @@ from utils import TOKEN, FIGI, ACCOUNT_ID, INSTRUMENT_ID, change_quotation
 
 from asyncio import Event
 
+from tinkoff.invest.utils import quotation_to_decimal
 
 import pandas as pd
 
-# with Client(TOKEN) as client:
-#     shares = client.instruments.shares()
-#     for share in shares.instruments:
-#         if  share.ticker == 'GAZP':
-#             pprint(share)
+df = pd.DataFrame({
+    'a': [1, 2, 9, 4],
+    'b': [2, 3, pd.NA, 10]
+})
 
-# async def async_generator(n):
-#     for _ in range(n):
-#         yield random.randint(0, 100)
-#         await asyncio.sleep(0.01)
-#
-# async def main():
-#     async for x in async_generator(10):
-#         print(x)
-#
-#
-#
-# if __name__ == '__main__':
-#     asyncio.run(main())
-import signal
-import time
+# # Drop rows with all NaN values before concatenation
+# if not new_row_df.isnull().all(axis=1).iloc[0]:
+#     if current_candle_time in self.df.index:
+#         for col in new_row_df.columns:
+#             if not pd.isna(new_row_df[col].iloc[0]):
+#                 self.df.loc[current_candle_time, col] = new_row_df[col].iloc[0]
+#     else:
+#         self.df = pd.concat([self.df, new_row_df])
 
-def timeout_handler(signum, frame):
-    raise TimeoutError("Функция заняла слишком много времени!")
-
-signal.signal(signal.SIGALRM, timeout_handler)  # Привязываем обработчик сигнала
-signal.setitimer(signal.ITIMER_REAL, 1)  # Запускаем таймер на 3 секунды
-
-try:
-    print("Читаем файл")
-    for ind in range(10000000):
-        pass
-    print("Файл прочитан полностью!", ind)
-except TimeoutError as e:
-    print(ind)
-    print("Прервано:", e)
-finally:
-    signal.alarm(0)  # Отключаем сигнал
+if __name__ == '__main__':
+    price_q = Quotation(units=3, nano=123000000)
+    price: decimal.Decimal = quotation_to_decimal(price_q)
+    print(price.from_float())

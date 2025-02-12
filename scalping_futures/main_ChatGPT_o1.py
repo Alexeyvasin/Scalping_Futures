@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 import pandas as pd
 from os import getenv
@@ -7,7 +8,7 @@ import datetime
 
 from tinkoff.invest.market_data_stream.async_market_data_stream_manager import AsyncMarketDataStreamManager
 from tinkoff.invest.schemas import OrderStateStreamRequest
-from tinkoff.invest.utils import now
+from tinkoff.invest.utils import now, quotation_to_decimal, decimal_to_quotation
 from tinkoff.invest import (
     Client,
     OrderDirection,
@@ -22,7 +23,7 @@ from tinkoff.invest import (
 )
 from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
-from utils import todays_candles_to_df, get_data
+from utils import todays_candles_to_df, get_data, detect_min_incr
 from orders import open_position, post_stop_orders, get_stop_orders
 import settings as s
 from subscribers import orders_subscriber, rsi_subscriber
@@ -253,7 +254,6 @@ class ScalpingBot:
 
     async def update_data(self):
         futures_quantity, orders_prices = await get_data()
-
         self.futures_quantity = futures_quantity
         self.order_prices = orders_prices
         s.logger.info(f'[futures_quantity] {futures_quantity}')
@@ -292,6 +292,7 @@ class ScalpingBot:
                     order_request_id = order_state.order_state.order_request_id
                     s.order_event.set()
                     s.logger.info(f'[events_orders] order {order_request_id} HAPPENED!')
+                    s.logger.info(f'[order state] {order_state}')
 
     # ----------------------------------------------------------
     # The core streaming loop, run in a thread
@@ -328,8 +329,8 @@ class ScalpingBot:
             # If the for-loop exits naturally, it means the stream ended
             s.logger.warning("Stream ended or disconnected from Tinkoff")
 
-    async def  _run_stream_loop_async(self):
-        async with AsyncClient(self.token) as  client:
+    async def _run_stream_loop_async(self):
+        async with AsyncClient(self.token) as client:
             market_data_stream: AsyncMarketDataStreamManager = client.create_market_data_stream()
 
             subscribe_request = MarketDataRequest(
@@ -354,7 +355,6 @@ class ScalpingBot:
 
             # If the for-loop exits naturally, it means the stream ended
             s.logger.warning("Stream ended or disconnected from Tinkoff")
-
 
     async def start(self):
         """Запуск бота (асинхронно): подписка на минутные свечи и обработка данных."""
@@ -400,10 +400,10 @@ class ScalpingBot:
     # ----------------------------------------------------------
     def on_new_candle(self, candle):
         """Обработка каждой новой минутной свечи (sync code, called from the streaming thread)."""
-        open_price = self._quotation_to_float(candle.open)
-        close_price = self._quotation_to_float(candle.close)
-        high_price = self._quotation_to_float(candle.high)
-        low_price = self._quotation_to_float(candle.low)
+        open_price = float(quotation_to_decimal(candle.open))
+        close_price = float(quotation_to_decimal(candle.close))
+        high_price = float(quotation_to_decimal(candle.high))
+        low_price = float(quotation_to_decimal(candle.low))
         volume_sales = candle.volume
 
         current_candle_time = pd.to_datetime(candle.time).to_datetime64()
@@ -440,13 +440,15 @@ class ScalpingBot:
                 for col in new_row_df.columns:
                     if not pd.isna(new_row_df[col].iloc[0]):
                         self.df.loc[current_candle_time, col] = new_row_df[col].iloc[0]
+                        print('new_row_df', new_row_df)
             else:
                 self.df = pd.concat([self.df, new_row_df])
-
+        self._calculate_indicators()
         s.logger.debug(f"Updated DataFrame tail:\n{self.df.tail()}")
         print(f'before s.rsi_event.set {s.rsi_event.is_set()}')
         s.rsi_event.set()
         print(f'after s.rsi_event.set() {s.rsi_event.is_set()}')
+        print(f'self.df \n {self.df.tail().to_string()}')
         # print(self.df.tail(n=2))
 
         # Keep only 500 last rows
@@ -505,6 +507,11 @@ class ScalpingBot:
     async def _generate_signal_and_trade(self):
         """Асинхронная логика генерации сигналов + исполнение сделок."""
 
+
+        if not detect_min_incr(self):
+            logging.info(f'[detect_min_incr] not pass')
+            return
+
         # Check we have enough data
         if len(self.df) < self.ema_slow_period + 1:
             s.logger.info("Not enough data for EMA calculations.")
@@ -539,15 +546,19 @@ class ScalpingBot:
         # )
 
         prev_row = self.df.iloc[-2]
+        pre_prev_row = self.df.iloc[-3]
         prev_ema_fast = prev_row["EMA_fast"]
         prev_ema_slow = prev_row["EMA_slow"]
+        pre_prev_ema_fast = pre_prev_row['EMA_fast']
+        pre_prev_ema_slow = pre_prev_row['EMA_slow']
+
 
         # Detect signals
         long_signal = False
         short_signal = False
-        if prev_ema_fast < prev_ema_slow and ema_fast > ema_slow and rsi_value < 70:
+        if (prev_ema_fast < prev_ema_slow or pre_prev_ema_fast < pre_prev_ema_slow) and ema_fast > ema_slow and rsi_value < 75:
             long_signal = True
-        elif prev_ema_fast > prev_ema_slow and ema_fast < ema_slow and rsi_value > 30:
+        elif (prev_ema_fast > prev_ema_slow or pre_prev_ema_fast > pre_prev_ema_slow) and ema_fast < ema_slow and rsi_value > 25:
             short_signal = True
         quantity = s.config['strategy']['max_contracts']
         # Position handling logic
@@ -580,14 +591,13 @@ class ScalpingBot:
             s.logger.info(f'[take_profit] {take_profit}')
             s.logger.info(f'[stop_loss] {stop_loss}')
 
-
         elif short_signal:
             quantity = quantity + self.futures_quantity
             if quantity <= 0:
                 return
             # await self.open_position(direction="SHORT", current_price=close_price)# chatGPT
             resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
-            s.logger.info(f'[commit sell order] {resp}')
+            s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
             await asyncio.sleep(10)
             await self.update_data()
             if resp:
@@ -629,9 +639,9 @@ class ScalpingBot:
             # loop.create_task(self.close_position())
             asyncio.run_coroutine_threadsafe(self.close_position(), self.main_loop)
 
-    @staticmethod
-    def _quotation_to_float(q):
-        return q.units + q.nano / 1e9 if q else 0.0
+    # @staticmethod
+    # def quotation_to_decimal(q):
+    #     return q.units + q.nano / 1e9 if q else 0.0
 
     def detect_market_regime(self):
         return 'trending'

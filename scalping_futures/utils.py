@@ -12,9 +12,14 @@ from tinkoff.invest import (
     Client, OperationType, RequestError,
 )
 from tinkoff.invest.async_services import AsyncServices
-from tinkoff.invest.utils import now
+from tinkoff.invest.utils import now, quotation_to_decimal
 from tinkoff.invest.services import CandleInterval
 from settings import config
+
+try:
+    from main_ChatGPT_o1 import ScalpingBot
+except ImportError:
+    pass
 
 load_dotenv()
 
@@ -143,6 +148,22 @@ async def main():
     positions, prices = await get_data()
     pprint(positions)
     pprint(prices)
+
+
+def detect_min_incr(bot:'ScalpingBot') -> bool:
+    if bot.futures_quantity != 0:
+        min_incr = config['strategy']['min_percent_for_interest']
+        last_price = float(quotation_to_decimal(bot.order_prices[0]))
+        min_, max_ = bot.df.iloc[-1]['low'], bot.df.iloc[-1]['high']
+        delta = last_price * min_incr / 100
+        if last_price + delta > max_ or last_price - delta < min_:
+            print(f'*min_incr {min_incr}')
+            print(f'*last_price {last_price}')
+            print(f'*max_ {max_}. min_ {min_}')
+            print(f'*delta {delta}')
+            return False
+    return True
+
 
 if __name__ == '__main__':
     asyncio.run(main())
