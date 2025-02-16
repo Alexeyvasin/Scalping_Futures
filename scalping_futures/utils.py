@@ -21,13 +21,15 @@ try:
 except ImportError:
     pass
 
-load_dotenv()
+import settings as s
 
+load_dotenv()
 
 TOKEN = os.getenv('TINKOFF_TOKEN')
 ACCOUNT_ID = os.getenv('ACCOUNT_ID')
 FIGI = config['tinkoff']['figi']
 INSTRUMENT_ID = config['tinkoff']['instrument_id']
+
 
 def load_future():
     with Client(TOKEN) as client:
@@ -35,6 +37,7 @@ def load_future():
             return client.instruments.future_by(id_type=3, id=INSTRUMENT_ID).instrument
         except Exception:
             return client.instruments.share_by(id_type=3, id=INSTRUMENT_ID).instrument
+
 
 FUTURE = load_future()
 
@@ -129,6 +132,7 @@ async def todays_candles_to_df() -> pd.DataFrame:
         df = on_historical_candle(future_candle, df)
     return df
 
+
 async def get_data():
     async with AsyncClient(TOKEN) as client:
         positions_task = client.operations.get_positions(account_id=ACCOUNT_ID)
@@ -144,27 +148,30 @@ async def get_data():
                 orders_prices.append(operation.price)
         return futures_quantity, tuple(orders_prices)
 
+
 async def main():
     positions, prices = await get_data()
     pprint(positions)
     pprint(prices)
 
 
-def detect_min_incr(bot:'ScalpingBot') -> bool:
-    if bot.futures_quantity != 0:
-        min_incr = config['strategy']['min_percent_for_interest']
-        last_price = float(quotation_to_decimal(bot.order_prices[0]))
-        min_, max_ = bot.df.iloc[-1]['low'], bot.df.iloc[-1]['high']
-        delta = last_price * min_incr / 100
-        if last_price + delta > max_ or last_price - delta < min_:
-            print(f'*min_incr {min_incr}')
-            print(f'*last_price {last_price}')
-            print(f'*max_ {max_}. min_ {min_}')
-            print(f'*delta {delta}')
-            return False
-    return True
+def detect_min_incr(bot: 'ScalpingBot') -> bool:
+    if bot.futures_quantity == 0: return False
+    # print(f'[detect_min_incr] checking')
+    min_incr = config['strategy']['min_percent_for_interest']
+    last_order_price = float(quotation_to_decimal(bot.order_prices[0]))
+    current_price = bot.df.iloc[-1]['close']
+    delta = abs(last_order_price - current_price) * 100 / last_order_price
+    if delta > min_incr:
+        # s.logger.info(f'[detect_min_incr]')
+        # s.logger.info(f'*min_incr {min_incr}')
+        # s.logger.info(f'*last_order_price {last_order_price}')
+        # s.logger.info(f'*current_price {current_price}')
+        # s.logger.info(f'*delta {delta}')
+        return True
+
+    return False
 
 
 if __name__ == '__main__':
     asyncio.run(main())
-

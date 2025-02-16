@@ -70,7 +70,7 @@ FIGI = s.config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточ
 
 COMMISSION_RATE = s.config['strategy']['commission_rate']  # Пример: 0.025% (round-turn => 0.0005)
 SPREAD_TICKS = s.config['strategy']['spread_ticks']  # Пример: 2 тика
-
+order_lock = asyncio.Lock()
 
 class ScalpingBot:
     def __init__(self, token, account_id, figi):
@@ -294,41 +294,6 @@ class ScalpingBot:
                     s.logger.info(f'[events_orders] order {order_request_id} HAPPENED!')
                     s.logger.info(f'[order state] {order_state}')
 
-    # ----------------------------------------------------------
-    # The core streaming loop, run in a thread
-    # ----------------------------------------------------------
-    def _run_stream_loop(self):
-        """Blocking method that opens the market data stream and iterates."""
-        with Client(self.token) as client:
-            market_data_stream: MarketDataStreamManager = client.create_market_data_stream()
-
-            subscribe_request = MarketDataRequest(
-                subscribe_candles_request=SubscribeCandlesRequest(
-                    subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
-                    instruments=[
-                        CandleInstrument(
-                            figi=self.figi,
-                            interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
-                        )
-                    ],
-                )
-            )
-            market_data_stream.subscribe(subscribe_request)
-
-            s.logger.info("Запущен стрим. Ожидаем новые свечи...")
-
-            # Blocking iteration:
-            for marketdata in market_data_stream:
-                if not self.trading_active:
-                    # If we decided to stop while streaming, break
-                    break
-                if marketdata.candle is not None:
-                    candle = marketdata.candle
-                    self.on_new_candle(candle)
-
-            # If the for-loop exits naturally, it means the stream ended
-            s.logger.warning("Stream ended or disconnected from Tinkoff")
-
     async def _run_stream_loop_async(self):
         async with AsyncClient(self.token) as client:
             market_data_stream: AsyncMarketDataStreamManager = client.create_market_data_stream()
@@ -352,6 +317,7 @@ class ScalpingBot:
                 if marketdata.candle is not None:
                     candle = marketdata.candle
                     self.on_new_candle(candle)
+                    s.rsi_event.set()
 
             # If the for-loop exits naturally, it means the stream ended
             s.logger.warning("Stream ended or disconnected from Tinkoff")
@@ -440,15 +406,15 @@ class ScalpingBot:
                 for col in new_row_df.columns:
                     if not pd.isna(new_row_df[col].iloc[0]):
                         self.df.loc[current_candle_time, col] = new_row_df[col].iloc[0]
-                        print('new_row_df', new_row_df)
+                        # print('new_row_df', new_row_df)
             else:
                 self.df = pd.concat([self.df, new_row_df])
         self._calculate_indicators()
-        s.logger.debug(f"Updated DataFrame tail:\n{self.df.tail()}")
-        print(f'before s.rsi_event.set {s.rsi_event.is_set()}')
-        s.rsi_event.set()
-        print(f'after s.rsi_event.set() {s.rsi_event.is_set()}')
-        print(f'self.df \n {self.df.tail().to_string()}')
+        s.logger.debug(f" [on_new_candle] Updated DataFrame tail:\n{self.df.tail()}")
+        # print(f'before s.rsi_event.set {s.rsi_event.is_set()}')
+        # s.rsi_event.set()
+        # print(f'after s.rsi_event.set() {s.rsi_event.is_set()}')
+        # print(f'self.df \n {self.df.tail().to_string()}')
         # print(self.df.tail(n=2))
 
         # Keep only 500 last rows
@@ -457,29 +423,30 @@ class ScalpingBot:
 
         # If a new candle has indeed started (i.e. the time changed),
         # call our candle-closed logic on the previous candle.
-        if self.last_candle_time and current_candle_time != self.last_candle_time:
+        # if self.last_candle_time and current_candle_time != self.last_candle_time:
+        if self.last_candle_time:
             self._on_candle_closed_handler(self.last_candle_time)
 
         self.last_candle_time = current_candle_time
 
     def _on_candle_closed_handler(self, closed_candle_time):
         """При закрытии свечи рассчитываем индикаторы и вызываем генерацию сигналов."""
-        closed_candle_time_index = pd.to_datetime(closed_candle_time).to_datetime64()
+        # closed_candle_time_index = pd.to_datetime(closed_candle_time).to_datetime64()
 
         try:
-            closed_candle = self.df.loc[closed_candle_time_index]
-            close_price = closed_candle["close"]
-            # s.logger.info(f"Свеча {closed_candle_time} закрылась. "
-            #             f" открытия: {closed_candle['open']}"
-            #             f" макс: {closed_candle['high']}"
-            #             f" мин: {closed_candle['low']}"
-            #             f" закрытия: {close_price}")
-            self._calculate_indicators()
-            # print(self.df.to_string())
-            # Because we want to do trades (which are async now),
-            # we can schedule that with asyncio.create_task.
-            # loop = asyncio.get_event_loop()
-            # loop.create_task(self._generate_signal_and_trade())
+            # closed_candle = self.df.loc[closed_candle_time_index]
+            # close_price = closed_candle["close"]
+            # # s.logger.info(f"Свеча {closed_candle_time} закрылась. "
+            # #             f" открытия: {closed_candle['open']}"
+            # #             f" макс: {closed_candle['high']}"
+            # #             f" мин: {closed_candle['low']}"
+            # #             f" закрытия: {close_price}")
+            # self._calculate_indicators()
+            # # print(self.df.to_string())
+            # # Because we want to do trades (which are async now),
+            # # we can schedule that with asyncio.create_task.
+            # # loop = asyncio.get_event_loop()
+            # # loop.create_task(self._generate_signal_and_trade())
             asyncio.run_coroutine_threadsafe(self._generate_signal_and_trade(), self.main_loop)
         except KeyError as e:
             s.logger.error(f"KeyError accessing dataframe during candle closing: {e}")
@@ -502,14 +469,13 @@ class ScalpingBot:
         df["RSI"] = 100.0 - (100.0 / (1.0 + rs))
 
         s.logger.debug("Indicators updated:")
-        s.logger.debug(df[["EMA_fast", "EMA_slow", "RSI"]].tail())
+        s.logger.debug(df[["EMA_fast", "EMA_slow", "RSI"]].tail(n=2))
 
     async def _generate_signal_and_trade(self):
         """Асинхронная логика генерации сигналов + исполнение сделок."""
 
-
-        if not detect_min_incr(self):
-            logging.info(f'[detect_min_incr] not pass')
+        if detect_min_incr(self):
+            logging.info(f'[_generate_signal_and_trade] not pass detect_min_incr')
             return
 
         # Check we have enough data
@@ -552,13 +518,14 @@ class ScalpingBot:
         pre_prev_ema_fast = pre_prev_row['EMA_fast']
         pre_prev_ema_slow = pre_prev_row['EMA_slow']
 
-
         # Detect signals
         long_signal = False
         short_signal = False
-        if (prev_ema_fast < prev_ema_slow or pre_prev_ema_fast < pre_prev_ema_slow) and ema_fast > ema_slow and rsi_value < 75:
+        if (
+                prev_ema_fast < prev_ema_slow or pre_prev_ema_fast < pre_prev_ema_slow) and ema_fast > ema_slow and rsi_value < 75:
             long_signal = True
-        elif (prev_ema_fast > prev_ema_slow or pre_prev_ema_fast > pre_prev_ema_slow) and ema_fast < ema_slow and rsi_value > 25:
+        elif (
+                prev_ema_fast > prev_ema_slow or pre_prev_ema_fast > pre_prev_ema_slow) and ema_fast < ema_slow and rsi_value > 25:
             short_signal = True
         quantity = s.config['strategy']['max_contracts']
         # Position handling logic
@@ -576,35 +543,38 @@ class ScalpingBot:
         #     else:
         #         self._update_stop_loss()
         # else:
-        if long_signal:
-            # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
-            quantity = quantity - self.futures_quantity
-            if quantity <= 0:
-                return
-            resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
-            s.logger.info(f'[commit buy order] {resp}')
-            await asyncio.sleep(10)
-            await self.update_data()
-            if resp:
-                self.position = 'long'
-            take_profit, stop_loss = await post_stop_orders(self)
-            s.logger.info(f'[take_profit] {take_profit}')
-            s.logger.info(f'[stop_loss] {stop_loss}')
+        with order_lock:
+            if long_signal:
+                # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
+                quantity = quantity - self.futures_quantity
+                if quantity <= 0:
+                    return
+                resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
+                s.logger.info(f'[commit buy order] quantity={quantity}. {resp}')
+                await asyncio.sleep(10)
+                await self.update_data()
+                if resp:
+                    self.position = 'long'
+                take_profit, stop_loss = await post_stop_orders(self)
+                s.logger.info(f'[take_profit] {take_profit}')
+                s.logger.info(f'[stop_loss] {stop_loss}')
+                await asyncio.sleep(50)
 
-        elif short_signal:
-            quantity = quantity + self.futures_quantity
-            if quantity <= 0:
-                return
-            # await self.open_position(direction="SHORT", current_price=close_price)# chatGPT
-            resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
-            s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
-            await asyncio.sleep(10)
-            await self.update_data()
-            if resp:
-                self.position = 'short'
-            take_profit, stop_loss = await post_stop_orders(self)
-            s.logger.info(f'[take_profit] {take_profit}')
-            s.logger.info(f'[stop_loss] {stop_loss}')
+            elif short_signal:
+                quantity = quantity + self.futures_quantity
+                if quantity <= 0:
+                    return
+                # await self.open_position(direction="SHORT", current_price=close_price)# chatGPT
+                resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
+                s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
+                await asyncio.sleep(10)
+                await self.update_data()
+                if resp:
+                    self.position = 'short'
+                take_profit, stop_loss = await post_stop_orders(self)
+                s.logger.info(f'[take_profit] {take_profit}')
+                s.logger.info(f'[stop_loss] {stop_loss}')
+                await asyncio.sleep(50)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""
@@ -712,8 +682,8 @@ class ScalpingBot:
     def is_trading_time(self):
         """Пример: 9:00–16:00 UTC."""
         # current_time = datetime.datetime.utcnow().time()
-        current_time = datetime.datetime.now(datetime.UTC).time()
-        start_time = datetime.time(6, 0)  # 09:00 UTC
+        current_time = now().time()
+        start_time = datetime.time(7, 0)  # 09:00 UTC
         end_time = datetime.time(21, 0)  # 16:00 UTC
         return start_time <= current_time <= end_time
 
