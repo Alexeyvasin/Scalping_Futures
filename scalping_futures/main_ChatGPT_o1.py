@@ -24,7 +24,7 @@ from tinkoff.invest import (
 from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
 from utils import todays_candles_to_df, get_data, detect_min_incr
-from orders import open_position, post_stop_orders, get_stop_orders
+import orders
 import settings as s
 from subscribers import orders_subscriber, rsi_subscriber
 
@@ -548,33 +548,34 @@ class ScalpingBot:
                 # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
                 quantity = quantity - self.futures_quantity
                 if quantity <= 0:
-                    return
-                resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
-                s.logger.info(f'[commit buy order] quantity={quantity}. {resp}')
-                await asyncio.sleep(10)
-                await self.update_data()
-                if resp:
-                    self.position = 'long'
-                take_profit, stop_loss = await post_stop_orders(self)
-                s.logger.info(f'[take_profit] {take_profit}')
-                s.logger.info(f'[stop_loss] {stop_loss}')
-                await asyncio.sleep(50)
+                    direction = OrderDirection.ORDER_DIRECTION_BUY
+                    await orders.open_position_with_stops(direction, quantity, self)
+                # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
+                # s.logger.info(f'[commit buy order] quantity={quantity}. {resp}')
+                # await asyncio.sleep(10)
+                # await self.update_data()
+                # if resp:
+                #     self.position = 'long'
+                # take_profit, stop_loss = await post_stop_orders(self)
+                # s.logger.info(f'[take_profit] {take_profit}')
+                # s.logger.info(f'[stop_loss] {stop_loss}')
+                # await asyncio.sleep(50)
 
             elif short_signal:
                 quantity = quantity + self.futures_quantity
-                if quantity <= 0:
-                    return
-                # await self.open_position(direction="SHORT", current_price=close_price)# chatGPT
-                resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
-                s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
-                await asyncio.sleep(10)
-                await self.update_data()
-                if resp:
-                    self.position = 'short'
-                take_profit, stop_loss = await post_stop_orders(self)
-                s.logger.info(f'[take_profit] {take_profit}')
-                s.logger.info(f'[stop_loss] {stop_loss}')
-                await asyncio.sleep(50)
+                if quantity > 0:
+                    direction = OrderDirection.ORDER_DIRECTION_SELL
+                    await orders.open_position_with_stops(direction, quantity,  self)
+                # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
+                # s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
+                # await asyncio.sleep(10)
+                # await self.update_data()
+                # if resp:
+                #     self.position = 'short'
+                # take_profit, stop_loss = await post_stop_orders(self)
+                # s.logger.info(f'[take_profit] {take_profit}')
+                # s.logger.info(f'[stop_loss] {stop_loss}')
+                # await asyncio.sleep(50)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""

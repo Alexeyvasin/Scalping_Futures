@@ -1,4 +1,4 @@
-import asyncio
+import asyncio as   aio
 import uuid
 from pprint import pprint
 
@@ -30,6 +30,27 @@ def get_request(direction: OrderDirection, quantity):
         direction=direction,
         order_id=str(uuid.uuid4()),
     )
+
+try:
+    from main_ChatGPT_o1 import ScalpingBot
+except Exception:
+    pass
+
+open_position_with_stops_lock =  aio.Lock()
+
+async def open_position_with_stops(direction: OrderDirection,
+                                   quantity: int,
+                                   bot: 'ScalpingBot') -> None:
+
+    with open_position_with_stops_lock:
+        resp = await open_position(direction=direction, quantity=quantity)
+        s.logger.info(f'[o_p_w_s] {resp}')
+        await aio.sleep(5)
+        stop_resp = await post_stop_orders(bot)
+        if stop_resp is not None:
+            s.logger.info(f'[o_p_w_s] stop_orders are applied.\n {stop_resp}')
+        await aio.sleep(55)
+
 
 
 async def open_position(direction: OrderDirection,
@@ -137,7 +158,7 @@ async def post_stop_orders(bot) -> tuple[PostStopOrderResponse, PostStopOrderRes
                                          direction=direction_for_stop,
                                          stop_order_type=StopOrderType.STOP_ORDER_TYPE_STOP_LOSS)
 
-        take_profit, stop_loss = await asyncio.gather(take_profit_task, stop_loss_task)
+        take_profit, stop_loss = await aio.gather(take_profit_task, stop_loss_task)
 
         return take_profit, stop_loss
 
@@ -150,9 +171,9 @@ async def get_stop_orders():
     return resp.stop_orders
 
 async def main():
-    stop_orders = await asyncio.gather(get_stop_orders())
+    stop_orders = await aio.gather(get_stop_orders())
     pprint(stop_orders)
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    aio.run(main())
