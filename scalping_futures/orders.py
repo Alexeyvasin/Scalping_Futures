@@ -1,4 +1,4 @@
-import asyncio as   aio
+import asyncio as aio
 import uuid
 from pprint import pprint
 
@@ -16,9 +16,11 @@ from tinkoff.invest import (
 )
 from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersResponse
 from tinkoff.invest.async_services import AsyncServices, PostOrderAsyncRequest
+from tinkoff.invest.utils import now
 
 from utils import TOKEN, FIGI, ACCOUNT_ID, INSTRUMENT_ID, change_quotation
 import settings as s
+import utils as u
 
 
 def get_request(direction: OrderDirection, quantity):
@@ -31,26 +33,44 @@ def get_request(direction: OrderDirection, quantity):
         order_id=str(uuid.uuid4()),
     )
 
+
 try:
     from main_ChatGPT_o1 import ScalpingBot
 except Exception:
     pass
 
-open_position_with_stops_lock =  aio.Lock()
+open_position_with_stops_lock = aio.Lock()
+
 
 async def open_position_with_stops(direction: OrderDirection,
                                    quantity: int,
                                    bot: 'ScalpingBot') -> None:
+    if not u.is_trading_time():
+        s.logger.info(f'[o_p_w_s] not trading time. Now is {now()}')
+        return
+    async with open_position_with_stops_lock:
 
-    with open_position_with_stops_lock:
+        if direction == OrderDirection.ORDER_DIRECTION_BUY:
+            real_quantity = quantity
+        elif direction == OrderDirection.ORDER_DIRECTION_SELL:
+            real_quantity = -quantity
+        while abs(real_quantity + bot.futures_quantity) > s.config['strategy']['max_contracts'] and quantity > 0:
+            if direction == OrderDirection.ORDER_DIRECTION_BUY:
+                real_quantity = quantity
+            elif direction == OrderDirection.ORDER_DIRECTION_SELL:
+                real_quantity = -quantity
+            quantity -= 1
+        if quantity <= 0:
+            s.logger.info(f'[o_p_w_s] The deal cannot commit. quantity = {quantity}')
+            return
+
         resp = await open_position(direction=direction, quantity=quantity)
         s.logger.info(f'[o_p_w_s] {resp}')
         await aio.sleep(5)
         stop_resp = await post_stop_orders(bot)
         if stop_resp is not None:
             s.logger.info(f'[o_p_w_s] stop_orders are applied.\n {stop_resp}')
-        await aio.sleep(55)
-
+        await aio.sleep(120)
 
 
 async def open_position(direction: OrderDirection,
@@ -165,10 +185,11 @@ async def post_stop_orders(bot) -> tuple[PostStopOrderResponse, PostStopOrderRes
 
 async def get_stop_orders():
     async with AsyncClient(TOKEN) as client:
-        resp: GetStopOrdersResponse  = await client.stop_orders.get_stop_orders(
+        resp: GetStopOrdersResponse = await client.stop_orders.get_stop_orders(
             account_id=ACCOUNT_ID
         )
     return resp.stop_orders
+
 
 async def main():
     stop_orders = await aio.gather(get_stop_orders())

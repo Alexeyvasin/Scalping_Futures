@@ -173,5 +173,14 @@ def detect_min_incr(bot: 'ScalpingBot') -> bool:
     return False
 
 
+def is_trading_time():
+    """Пример: 9:00–16:00 UTC."""
+    # current_time = datetime.datetime.utcnow().time()
+    current_time = now().time()
+    start_time = datetime.time(7, 0)  # 09:00 UTC
+    end_time = datetime.time(21, 0)  # 16:00 UTC
+    return start_time <= current_time <= end_time
+
+
 if __name__ == '__main__':
     asyncio.run(main())

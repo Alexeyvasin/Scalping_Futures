@@ -1,4 +1,3 @@
-
 import asyncio as aio
 
 from tinkoff.invest import OrderDirection
@@ -44,18 +43,9 @@ async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
                         direction = OrderDirection.ORDER_DIRECTION_SELL
                         s.logger.info(f'[rsi_subscriber]  Trying to SELL. quantity= {quantity}.')
                         await orders.open_position_with_stops(direction, quantity, bot)
-                        # resp = await orders.open_position(direction=direction, quantity=quantity)
-                        # s.logger.info(f'[rsi_subscriber] {deal} positions. Quantity = {quantity}')
-                        # s.logger.info(f'{resp}')
-                        # await aio.sleep(10)
-                        # stop_resp = await orders.post_stop_orders(bot)
-                        #
-                        # if stop_resp is not None:
-                        #     s.logger.info(f'[rsi_subscriber] stop_orders are applied.\n {stop_resp}')
-                        # await aio.sleep(40)
-
 
             elif last_rsi < s.config['rsi']['for_buy']:
+                print(f' Hi from buy!')
                 max_contracts = s.config['strategy']['max_contracts']
                 if bot.futures_quantity != max_contracts:
                     if (quantity := max_contracts - bot.futures_quantity) > 0:
@@ -63,32 +53,14 @@ async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
                         # s.logger.info(f'It`S NEED TO BUY! RSI = {last_rsi}')
                         s.logger.info(f'[rsi_subscriber]  Trying to BUY. quantity= {quantity}.')
                         await orders.open_position_with_stops(direction, quantity, bot)
-                        # deal = 'BOUGHT'
-                        # resp = await orders.open_position(direction=direction, quantity=quantity)
-                        # s.logger.info(f'[rsi_subscriber] {deal} positions. Quantity = {quantity}')
-                        # s.logger.info(f'{resp}')
-                        # await aio.sleep(10)
-                        # stop_resp = await orders.post_stop_orders(bot)
-                        #
-                        # if stop_resp is not None:
-                        #     s.logger.info(f'[rsi_subscriber] stop_orders are applied.\n {stop_resp}')
-                        # await aio.sleep(40)
 
             elif last_rsi < min(s.config['rsi']['for_close']) and bot.futures_quantity < 0:
+                print(f'Hi from CLOSE!')
                 s.logger.info(f'It`S NEED TO CLOSE POSITIONS! RSI = {last_rsi}')
                 # deal = 'ClOSE'
                 quantity = abs(bot.futures_quantity)
                 direction = OrderDirection.ORDER_DIRECTION_BUY
                 await orders.open_position_with_stops(direction, quantity, bot)
-                # resp = await orders.open_position(direction=direction, quantity=quantity)
-                # s.logger.info(f'[rsi_subscriber] {deal} positions. Quantity = {quantity}')
-                # s.logger.info(f'{resp}')
-                # await aio.sleep(10)
-                # stop_resp = await orders.post_stop_orders(bot)
-
-                # if stop_resp is not None:
-                #     s.logger.info(f'[rsi_subscriber] stop_orders are applied.\n {stop_resp}')
-                # await aio.sleep(40)
 
             elif last_rsi > max(s.config['rsi']['for_close']) and bot.futures_quantity > 0:
                 # deal = 'CLOSE'
@@ -96,13 +68,3 @@ async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
                 quantity = abs(bot.futures_quantity)
                 direction = OrderDirection.ORDER_DIRECTION_SELL
                 await orders.open_position_with_stops(direction, quantity, bot)
-                # resp = await orders.open_position(direction=direction, quantity=quantity)
-                # s.logger.info(f'[rsi_subscriber] {deal} positions. Quantity = {quantity}')
-                # s.logger.info(f'{resp}')
-                # await aio.sleep(10)
-                # stop_resp = await orders.post_stop_orders(bot)
-                #
-                # if stop_resp is not None:
-                #     s.logger.info(f'[rsi_subscriber] stop_orders are applied.\n {stop_resp}')
-                # await aio.sleep(40)
-

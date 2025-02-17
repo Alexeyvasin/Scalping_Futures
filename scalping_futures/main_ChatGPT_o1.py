@@ -426,6 +426,7 @@ class ScalpingBot:
         # if self.last_candle_time and current_candle_time != self.last_candle_time:
         if self.last_candle_time:
             self._on_candle_closed_handler(self.last_candle_time)
+            print(f'{self.last_candle_time}. rsi = {self.df.iloc[-1]['RSI']}')
 
         self.last_candle_time = current_candle_time
 
@@ -495,9 +496,9 @@ class ScalpingBot:
             return
 
         # Time-based filter
-        if not self.is_trading_time():
-            s.logger.info("Outside of trading hours, skipping trade.")
-            return
+        # if not:
+        #     s.logger.info("Outside of trading hours, skipping trade.")
+        #     return
 
         last_row = self.df.iloc[-1]
         # print('*last_row', last_row)
@@ -528,6 +529,7 @@ class ScalpingBot:
                 prev_ema_fast > prev_ema_slow or pre_prev_ema_fast > pre_prev_ema_slow) and ema_fast < ema_slow and rsi_value > 25:
             short_signal = True
         quantity = s.config['strategy']['max_contracts']
+        print(f'*long_signal, short_signal = {long_signal}, {short_signal}')
         # Position handling logic
         # if self.futures_quantity > 0: # there is long positions
         #     if short_signal:
@@ -543,39 +545,38 @@ class ScalpingBot:
         #     else:
         #         self._update_stop_loss()
         # else:
-        with order_lock:
-            if long_signal:
-                # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
-                quantity = quantity - self.futures_quantity
-                if quantity <= 0:
-                    direction = OrderDirection.ORDER_DIRECTION_BUY
-                    await orders.open_position_with_stops(direction, quantity, self)
-                # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
-                # s.logger.info(f'[commit buy order] quantity={quantity}. {resp}')
-                # await asyncio.sleep(10)
-                # await self.update_data()
-                # if resp:
-                #     self.position = 'long'
-                # take_profit, stop_loss = await post_stop_orders(self)
-                # s.logger.info(f'[take_profit] {take_profit}')
-                # s.logger.info(f'[stop_loss] {stop_loss}')
-                # await asyncio.sleep(50)
+        if long_signal:
+            # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
+            quantity = quantity - self.futures_quantity
+            if quantity <= 0:
+                direction = OrderDirection.ORDER_DIRECTION_BUY
+                await orders.open_position_with_stops(direction, quantity, self)
+            # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
+            # s.logger.info(f'[commit buy order] quantity={quantity}. {resp}')
+            # await asyncio.sleep(10)
+            # await self.update_data()
+            # if resp:
+            #     self.position = 'long'
+            # take_profit, stop_loss = await post_stop_orders(self)
+            # s.logger.info(f'[take_profit] {take_profit}')
+            # s.logger.info(f'[stop_loss] {stop_loss}')
+            # await asyncio.sleep(50)
 
-            elif short_signal:
-                quantity = quantity + self.futures_quantity
-                if quantity > 0:
-                    direction = OrderDirection.ORDER_DIRECTION_SELL
-                    await orders.open_position_with_stops(direction, quantity,  self)
-                # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
-                # s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
-                # await asyncio.sleep(10)
-                # await self.update_data()
-                # if resp:
-                #     self.position = 'short'
-                # take_profit, stop_loss = await post_stop_orders(self)
-                # s.logger.info(f'[take_profit] {take_profit}')
-                # s.logger.info(f'[stop_loss] {stop_loss}')
-                # await asyncio.sleep(50)
+        elif short_signal:
+            quantity = quantity + self.futures_quantity
+            if quantity > 0:
+                direction = OrderDirection.ORDER_DIRECTION_SELL
+                await orders.open_position_with_stops(direction, quantity,  self)
+            # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
+            # s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
+            # await asyncio.sleep(10)
+            # await self.update_data()
+            # if resp:
+            #     self.position = 'short'
+            # take_profit, stop_loss = await post_stop_orders(self)
+            # s.logger.info(f'[take_profit] {take_profit}')
+            # s.logger.info(f'[stop_loss] {stop_loss}')
+            # await asyncio.sleep(50)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""
@@ -680,13 +681,13 @@ class ScalpingBot:
         # # Return True if the market is sufficiently volatile:
         # return current_atr > threshold
 
-    def is_trading_time(self):
-        """Пример: 9:00–16:00 UTC."""
-        # current_time = datetime.datetime.utcnow().time()
-        current_time = now().time()
-        start_time = datetime.time(7, 0)  # 09:00 UTC
-        end_time = datetime.time(21, 0)  # 16:00 UTC
-        return start_time <= current_time <= end_time
+    # def is_trading_time(self):
+    #     """Пример: 9:00–16:00 UTC."""
+    #     # current_time = datetime.datetime.utcnow().time()
+    #     current_time = now().time()
+    #     start_time = datetime.time(7, 0)  # 09:00 UTC
+    #     end_time = datetime.time(21, 0)  # 16:00 UTC
+    #     return start_time <= current_time <= end_time
 
     def update_performance_metrics(self):
         """Обновляем винрейт и печатаем статистику."""
