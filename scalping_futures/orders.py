@@ -48,6 +48,13 @@ async def open_position_with_stops(direction: OrderDirection,
     if not u.is_trading_time():
         s.logger.info(f'[o_p_w_s] not trading time. Now is {now()}')
         return
+
+    if bot.futures_quantity:
+        differ = abs(bot.last_operations_price - bot.df['close'].iloc[-1]) * 100 / bot.last_operations_price
+        if differ < s.config['strategy']['min_percent_for_interest']:
+            s.logger.info(f'[open_position_with_stops] cannot be executed. differ is too little: {differ}')
+            return
+
     async with open_position_with_stops_lock:
 
         if direction == OrderDirection.ORDER_DIRECTION_BUY:

@@ -93,6 +93,7 @@ class ScalpingBot:
         self.last_signal = None
         self.futures_quantity = None
         self.order_prices = None
+        self.last_operations_price = None
 
         # Параметры индикаторов
         self.ema_fast_period = s.config['strategy']['ema_fast_period']
@@ -253,7 +254,7 @@ class ScalpingBot:
     # ----------------------------------------------------------
 
     async def update_data(self):
-        futures_quantity, orders_prices = await get_data()
+        futures_quantity, orders_prices = await get_data(self)
         self.futures_quantity = futures_quantity
         self.order_prices = orders_prices
         s.logger.info(f'[futures_quantity] {futures_quantity}')
@@ -324,6 +325,8 @@ class ScalpingBot:
 
     async def start(self):
         """Запуск бота (асинхронно): подписка на минутные свечи и обработка данных."""
+        s.logger.info(f'[start] It`s starting...')
+        s.logger.info(f'-----------------------------')
         self.trading_active = True
         retry_delay = 1
         max_retry_delay = 60

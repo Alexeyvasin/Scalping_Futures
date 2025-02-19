@@ -22,5 +22,5 @@ rsi:
   for_sell: 88
   for_buy: 15
   for_close:
-    - 25
-    - 75
+    - 20
+    - 80

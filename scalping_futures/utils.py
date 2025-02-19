@@ -133,12 +133,23 @@ async def todays_candles_to_df() -> pd.DataFrame:
     return df
 
 
-async def get_data():
+async def get_data(bot:'ScalpingBot' = None):
     async with AsyncClient(TOKEN) as client:
         positions_task = client.operations.get_positions(account_id=ACCOUNT_ID)
         operations_task = client.operations.get_operations(account_id=ACCOUNT_ID)
 
         positions, operations = await asyncio.gather(positions_task, operations_task)
+        for operation in operations.operations:
+            if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
+                s.logger.info(f'[get_data] Last operation {operation}')
+                s.logger.info(
+                    f'[get_data]. Price of last operation: '
+                    f'{quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))}')
+                if bot:
+                    bot.last_operations_price = float(
+                        quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))
+                    )
+                break
         futures_quantity = 0 if not positions.futures else positions.futures[0].balance
         orders_prices = []
         for operation in operations.operations:
@@ -147,12 +158,6 @@ async def get_data():
             if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
                 orders_prices.append(operation.price)
         return futures_quantity, tuple(orders_prices)
-
-
-async def main():
-    positions, prices = await get_data()
-    pprint(positions)
-    pprint(prices)
 
 
 def detect_min_incr(bot: 'ScalpingBot') -> bool:
@@ -181,6 +186,11 @@ def is_trading_time():
     end_time = datetime.time(21, 0)  # 16:00 UTC
     return start_time <= current_time <= end_time
 
+
+async def main():
+    positions, prices = await get_data()
+    pprint(positions)
+    pprint(prices)
 
 if __name__ == '__main__':
     asyncio.run(main())
