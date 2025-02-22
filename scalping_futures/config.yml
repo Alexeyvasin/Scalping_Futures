@@ -20,7 +20,7 @@ strategy:
 
 rsi:
   for_sell: 88
-  for_buy: 15
+  for_buy: 12
   for_close:
-    - 20
-    - 80
+    - 18
+    - 82

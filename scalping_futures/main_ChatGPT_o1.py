@@ -257,8 +257,8 @@ class ScalpingBot:
         futures_quantity, orders_prices = await get_data(self)
         self.futures_quantity = futures_quantity
         self.order_prices = orders_prices
-        s.logger.info(f'[futures_quantity] {futures_quantity}')
-        s.logger.info(f'[orders_prices] {orders_prices}')
+        s.logger.info(f'[update_data] Future quantity = {futures_quantity}')
+        s.logger.info(f'[update_data] Orders_prices =  {orders_prices}')
 
     async def get_account_balance(self):
         """Asynchronously get account balance by delegating to a thread."""

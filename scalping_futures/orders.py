@@ -45,6 +45,7 @@ open_position_with_stops_lock = aio.Lock()
 async def open_position_with_stops(direction: OrderDirection,
                                    quantity: int,
                                    bot: 'ScalpingBot') -> None:
+    s.logger.info(f'[o_p_w_s] i am working...')
     if not u.is_trading_time():
         s.logger.info(f'[o_p_w_s] not trading time. Now is {now()}')
         return
@@ -52,8 +53,11 @@ async def open_position_with_stops(direction: OrderDirection,
     if bot.futures_quantity:
         differ = abs(bot.last_operations_price - bot.df['close'].iloc[-1]) * 100 / bot.last_operations_price
         if differ < s.config['strategy']['min_percent_for_interest']:
-            s.logger.info(f'[open_position_with_stops] cannot be executed. differ is too little: {differ}')
+            s.logger.info(f'[o_p_w_s] cannot be executed. differ is too little: {differ}')
             return
+        else:
+            s.logger.info(f'[o_p_w_s] Differ is norm! Passed it! last_op_price = {bot.last_operations_price}. '
+                          f'price_now = {bot.df['close'].iloc[-1]}')
 
     async with open_position_with_stops_lock:
 
@@ -169,9 +173,9 @@ async def post_stop_orders(bot) -> tuple[PostStopOrderResponse, PostStopOrderRes
         if direction_for_stop == 1:
             take_profit_price_q, stop_loss_price_q = stop_loss_price_q, take_profit_price_q
 
-        print(direction_for_stop)
-        print(take_profit_price_q)
-        print(stop_loss_price_q)
+        s.logger.info(f'[post_stop_orders] Direction for stop = {direction_for_stop}')
+        print(f'[post_stop_orders] TP price = {take_profit_price_q}')
+        print(f'[post_stop_orders] SL price = {stop_loss_price_q}')
 
         take_profit_task = open_stop_order(client,
                                            quantity=quantity,

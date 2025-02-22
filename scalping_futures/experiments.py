@@ -23,11 +23,12 @@ config = load_config("config.yml")
 
 async def get_last_operation():
     async with AsyncClient(TOKEN) as client:
-        operations = await client.operations.get_operations(account_id=ACCOUNT_ID)
-        for operation in operations.operations:
-            if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
-                pprint(operation)
-                return operation
+        # operations = await client.operations.get_operations(account_id=ACCOUNT_ID)
+        # for operation in operations.operations:
+        #     if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
+        #         pprint(operation)
+        #         return operation
+
 
 
 async def main():

@@ -20,12 +20,13 @@ async def orders_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
         async with orders_lock:
             await event.wait()
             print(f'[orders_subscriber]: RECEIVED!')
-            await aio.sleep(3)
+            await aio.sleep(9)
             await bot.update_data()
             event.clear()
 
 
 async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
+    s.logger.info(f'[rsi_subscriber] RSI = {bot.df.iloc[-1]['RSI']}')
     print(f'[rsi_subscriber] await event..')
     while True:
         await event.wait()
