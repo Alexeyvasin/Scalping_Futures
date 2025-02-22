@@ -301,6 +301,7 @@ class ScalpingBot:
                     s.order_event.set()
                     s.logger.info(f'[events_orders] order {order_request_id} HAPPENED!')
                     s.logger.info(f'[order state] {order_state}')
+                    await self.update_data()
 
     async def _run_stream_loop_async(self):
         async with AsyncClient(self.token) as client:
@@ -505,22 +506,11 @@ class ScalpingBot:
             s.logger.info("Market volatility is too low, skipping trade.")
             return
 
-        # Time-based filter
-        # if not:
-        #     s.logger.info("Outside of trading hours, skipping trade.")
-        #     return
-
         last_row = self.df.iloc[-1]
-        # print('*last_row', last_row)
         ema_fast = last_row["EMA_fast"]
         ema_slow = last_row["EMA_slow"]
         rsi_value = last_row["RSI"]
         close_price = last_row["close"]
-
-        # s.logger.info(
-        #     f"[Generate Signal] EMA_fast={ema_fast:.3f}, "
-        #     f"EMA_slow={ema_slow:.3f}, RSI={rsi_value:.3f}"
-        # )
 
         prev_row = self.df.iloc[-2]
         pre_prev_row = self.df.iloc[-3]
@@ -540,53 +530,20 @@ class ScalpingBot:
             short_signal = True
         quantity = s.config['strategy']['max_contracts']
         print(f'*long_signal, short_signal = {long_signal}, {short_signal}')
-        # Position handling logic
-        # if self.futures_quantity > 0: # there is long positions
-        #     if short_signal:
-        #         await self.close_position()
-        #         await self.open_position(direction="SHORT", current_price=close_price)
-        #     else:
-        #         self._update_stop_loss()
-        #     await self.update_data()
-        # elif self.position == "short":
-        #     if long_signal:
-        #         await self.close_position()
-        #         await self.open_position(direction="LONG", current_price=close_price)
-        #     else:
-        #         self._update_stop_loss()
-        # else:
         if long_signal:
             # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
             quantity = quantity - self.futures_quantity
             if quantity <= 0:
                 direction = OrderDirection.ORDER_DIRECTION_BUY
+                s.logger.info(f'[_g_s_a_t]. Signal LONG. Order to buy')
                 await orders.open_position_with_stops(direction, quantity, self)
-            # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_BUY, quantity=quantity)
-            # s.logger.info(f'[commit buy order] quantity={quantity}. {resp}')
-            # await asyncio.sleep(10)
-            # await self.update_data()
-            # if resp:
-            #     self.position = 'long'
-            # take_profit, stop_loss = await post_stop_orders(self)
-            # s.logger.info(f'[take_profit] {take_profit}')
-            # s.logger.info(f'[stop_loss] {stop_loss}')
-            # await asyncio.sleep(50)
 
         elif short_signal:
             quantity = quantity + self.futures_quantity
             if quantity > 0:
                 direction = OrderDirection.ORDER_DIRECTION_SELL
+                s.logger.info(f'[_g_s_a_t]. Signal SHORT. Order to sell')
                 await orders.open_position_with_stops(direction, quantity,  self)
-            # resp = await open_position(direction=OrderDirection.ORDER_DIRECTION_SELL, quantity=quantity)
-            # s.logger.info(f'[commit sell order] quantity={quantity}. {resp}')
-            # await asyncio.sleep(10)
-            # await self.update_data()
-            # if resp:
-            #     self.position = 'short'
-            # take_profit, stop_loss = await post_stop_orders(self)
-            # s.logger.info(f'[take_profit] {take_profit}')
-            # s.logger.info(f'[stop_loss] {stop_loss}')
-            # await asyncio.sleep(50)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""

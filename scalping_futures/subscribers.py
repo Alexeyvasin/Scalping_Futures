@@ -17,25 +17,24 @@ rsi_lock = aio.Lock()
 async def orders_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
     print(f'orders_subscriber awaits orders..')
     while True:
+        await event.wait()
         async with orders_lock:
-            await event.wait()
             print(f'[orders_subscriber]: RECEIVED!')
-            await aio.sleep(9)
+            await aio.sleep(4)
             await bot.update_data()
             event.clear()
 
 
 async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
-    s.logger.info(f'[rsi_subscriber] RSI = {bot.df.iloc[-1]['RSI']}')
     print(f'[rsi_subscriber] await event..')
     while True:
         await event.wait()
-        # print(f'Hello from rsi_subscriber!')
         async with rsi_lock:
+            s.logger.info(f'[rsi_subscriber] RSI = {bot.df.iloc[-1]['RSI']}')
             event.clear()
             # print(f'Hello from rsi_subscriber!')
             last_rsi = float(bot.df['RSI'].iloc[-1])
-
+            s.logger.info(f'[rsi_subscriber] RSI = {last_rsi}')
             if last_rsi > s.config['rsi']['for_sell']:
                 max_contracts = s.config['strategy']['max_contracts']
                 if bot.futures_quantity != max_contracts * -1:
