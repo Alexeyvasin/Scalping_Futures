@@ -28,6 +28,8 @@ async def get_last_operation():
         #     if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
         #         pprint(operation)
         #         return operation
+        stops   = await client.stop_orders.get_stop_orders(account_id=ACCOUNT_ID)
+        pprint(stops)
 
 
 

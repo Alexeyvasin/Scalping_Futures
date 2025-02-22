@@ -133,12 +133,13 @@ async def todays_candles_to_df() -> pd.DataFrame:
     return df
 
 
-async def get_data(bot:'ScalpingBot' = None):
+async def get_data(bot:'ScalpingBot' = None) -> tuple:
     async with AsyncClient(TOKEN) as client:
         positions_task = client.operations.get_positions(account_id=ACCOUNT_ID)
         operations_task = client.operations.get_operations(account_id=ACCOUNT_ID)
+        stops_task = client.stop_orders.get_stop_orders(account_id=ACCOUNT_ID)
 
-        positions, operations = await asyncio.gather(positions_task, operations_task)
+        positions, operations, stops = await asyncio.gather(positions_task, operations_task, stops_task)
         for operation in operations.operations:
             if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
                 s.logger.info(f'[get_data] Last operation {operation}')
@@ -157,7 +158,7 @@ async def get_data(bot:'ScalpingBot' = None):
                 break
             if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
                 orders_prices.append(operation.price)
-        return futures_quantity, tuple(orders_prices)
+        return futures_quantity, tuple(orders_prices), stops.stop_orders
 
 
 def detect_min_incr(bot: 'ScalpingBot') -> bool:

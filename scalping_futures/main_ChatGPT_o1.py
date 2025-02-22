@@ -94,6 +94,7 @@ class ScalpingBot:
         self.futures_quantity = None
         self.order_prices = None
         self.last_operations_price = None
+        self.stops = None
 
         # Параметры индикаторов
         self.ema_fast_period = s.config['strategy']['ema_fast_period']
@@ -254,11 +255,17 @@ class ScalpingBot:
     # ----------------------------------------------------------
 
     async def update_data(self):
-        futures_quantity, orders_prices = await get_data(self)
+        futures_quantity, orders_prices, stops = await get_data(self)
         self.futures_quantity = futures_quantity
         self.order_prices = orders_prices
+        self.stops = stops
         s.logger.info(f'[update_data] Future quantity = {futures_quantity}')
         s.logger.info(f'[update_data] Orders_prices =  {orders_prices}')
+        for n, stop in enumerate(stops):
+            direction = 'BUY' if stop.direction == 1  else 'SELL'
+            stop_type = 'SL' if stop.order_type == 2 else 'TP'
+            s.logger.info(f'[update_data]  Stop_{n+1}: Direction= {direction}.'
+                          f' Type= {stop_type}. Stop_price= {quotation_to_decimal(stop.stop_price)}')
 
     async def get_account_balance(self):
         """Asynchronously get account balance by delegating to a thread."""
