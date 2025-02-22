@@ -120,7 +120,7 @@ async def open_stop_order(client: AsyncServices,
             'indent': Quotation(units=0, nano=2000000),
             'indent_type': 1,
             'spread': Quotation(units=0, nano=2000000),
-            'spread_type': 1,
+            'spread_type': 2,
         }
         parameters['trailing_data'] = PostStopOrderRequestTrailingData(**trailing_data_parameters)
 
