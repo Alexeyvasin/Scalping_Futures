@@ -2,7 +2,7 @@
 spread=0.5 relative value
 indent=0.5 absolute value
 """
-
+import decimal
 import json
 import logging
 import os
@@ -23,7 +23,7 @@ from tinkoff.invest import (
     PriceType,
 )
 from dotenv import load_dotenv
-from tinkoff.invest.schemas import TrailingValueType
+from tinkoff.invest.schemas import TrailingValueType, Quotation
 from tinkoff.invest.utils import decimal_to_quotation
 
 
@@ -36,10 +36,10 @@ logging.basicConfig(level=logging.INFO)
 
 INSTRUMENT_ID = os.getenv('EXPERIMENTS_UID')
 QUANTITY = 1
-PRICE = 93.0
-STOPPRICE = 92.95
-INDENT = 0.02
-SPREAD = 0.04
+# PRICE = 93.
+STOPPRICE = Quotation(units=93, nano=170000000)
+INDENT = 0.05
+SPREAD = 0.05
 
 
 def main():
@@ -59,22 +59,22 @@ def main():
 
         post_stop_order = client.stop_orders.post_stop_order(
             figi='BBG004730ZJ9',
-            price_type=PriceType.PRICE_TYPE_CURRENCY,
+            price_type=PriceType.PRICE_TYPE_POINT,
             quantity=QUANTITY,
-            price=decimal_to_quotation(Decimal(PRICE)),
-            # stop_price=decimal_to_quotation(Decimal(STOPPRICE)),
+            # price=decimal_to_quotation(Decimal(PRICE)),
+            stop_price=STOPPRICE,
             direction=StopOrderDirection.STOP_ORDER_DIRECTION_SELL,
             account_id=account_id,
             stop_order_type=StopOrderType.STOP_ORDER_TYPE_TAKE_PROFIT,
             instrument_id=INSTRUMENT_ID,
             expiration_type=StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_CANCEL,
-            exchange_order_type=ExchangeOrderType.EXCHANGE_ORDER_TYPE_LIMIT,
+            exchange_order_type=ExchangeOrderType.EXCHANGE_ORDER_TYPE_MARKET,
             take_profit_type=TakeProfitType.TAKE_PROFIT_TYPE_TRAILING,
             trailing_data=StopOrderTrailingData(
                 indent=decimal_to_quotation(Decimal(INDENT)),
                 indent_type=TrailingValueType.TRAILING_VALUE_ABSOLUTE,
-                spread=decimal_to_quotation(Decimal(SPREAD)),
-                spread_type=TrailingValueType.TRAILING_VALUE_ABSOLUTE,
+                # spread=decimal_to_quotation(Decimal(SPREAD)),
+                # spread_type=TrailingValueType.TRAILING_VALUE_ABSOLUTE,
             ),
         )
 

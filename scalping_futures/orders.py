@@ -14,7 +14,7 @@ from tinkoff.invest import (
     OperationType, PostStopOrderResponse,
     PostStopOrderRequestTrailingData,
 )
-from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersResponse
+from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersResponse, StopOrderExpirationType
 from tinkoff.invest.async_services import AsyncServices, PostOrderAsyncRequest
 from tinkoff.invest.utils import now
 
@@ -112,15 +112,15 @@ async def open_stop_order(client: AsyncServices,
         'stop_order_type': stop_order_type,
         'exchange_order_type': ExchangeOrderType.EXCHANGE_ORDER_TYPE_MARKET,
         # 'take_profit_type': TakeProfitType.TAKE_PROFIT_TYPE_REGULAR,
-        'expiration_type': 1,
+        'expiration_type': StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_CANCEL,
     }
     if stop_order_type == StopOrderType.STOP_ORDER_TYPE_TAKE_PROFIT:
         parameters['take_profit_type'] = TakeProfitType.TAKE_PROFIT_TYPE_TRAILING
         trailing_data_parameters = {
-            'indent': Quotation(units=0, nano=2000000),
+            'indent': Quotation(units=0, nano=3000000),
             'indent_type': 1,
-            'spread': Quotation(units=0, nano=5000000),
-            'spread_type': 2,
+            #     'spread': Quotation(units=0, nano=5000000),
+            #     'spread_type': 2,
         }
         parameters['trailing_data'] = PostStopOrderRequestTrailingData(**trailing_data_parameters)
 

@@ -30,16 +30,15 @@ async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
     while True:
         await event.wait()
         async with rsi_lock:
-            s.logger.info(f'[rsi_subscriber] RSI = {bot.df.iloc[-1]['RSI']}')
             event.clear()
             # print(f'Hello from rsi_subscriber!')
             last_rsi = float(bot.df['RSI'].iloc[-1])
-            s.logger.info(f'[rsi_subscriber] RSI = {last_rsi}')
+            # s.logger.info(f'[rsi_subscriber] RSI = {last_rsi}')
             if last_rsi > s.config['rsi']['for_sell']:
                 max_contracts = s.config['strategy']['max_contracts']
                 if bot.futures_quantity != max_contracts * -1:
                     if (quantity := max_contracts + bot.futures_quantity) > 0:
-                        # s.logger.info(f'It`S NEED TO SELL! RSI = {last_rsi}')
+                        s.logger.info(f'It`S NEED TO SELL! RSI = {last_rsi}')
                         direction = OrderDirection.ORDER_DIRECTION_SELL
                         s.logger.info(f'[rsi_subscriber]  Trying to SELL. quantity= {quantity}.')
                         await orders.open_position_with_stops(direction, quantity, bot)
