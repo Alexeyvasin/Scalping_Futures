@@ -18,14 +18,14 @@ from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersRespons
 from tinkoff.invest.async_services import AsyncServices, PostOrderAsyncRequest
 from tinkoff.invest.utils import now
 
-from utils import TOKEN, ACCOUNT_ID, INSTRUMENT_ID, change_quotation
+from utils import TOKEN, ACCOUNT_ID, UID, change_quotation
 import settings as s
 import utils as u
 
 
 def get_request(direction: OrderDirection, quantity):
     return PostOrderAsyncRequest(
-        instrument_id=INSTRUMENT_ID,
+        instrument_id=UID,
         quantity=quantity,
         account_id=ACCOUNT_ID,
         order_type=OrderType.ORDER_TYPE_MARKET,
@@ -104,7 +104,7 @@ async def open_stop_order(client: AsyncServices,
                           ):
     # print('*stop_order_type', stop_order_type)
     parameters = {
-        'instrument_id': INSTRUMENT_ID,
+        'instrument_id': UID,
         'quantity': quantity,
         'stop_price': stop_price,
         'direction': direction,

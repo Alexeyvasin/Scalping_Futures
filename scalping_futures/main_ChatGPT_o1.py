@@ -4,11 +4,10 @@ import random
 import pandas as pd
 from os import getenv
 from dotenv import load_dotenv
-import datetime
 
 from tinkoff.invest.market_data_stream.async_market_data_stream_manager import AsyncMarketDataStreamManager
 from tinkoff.invest.schemas import OrderStateStreamRequest
-from tinkoff.invest.utils import now, quotation_to_decimal, decimal_to_quotation
+from tinkoff.invest.utils import now, quotation_to_decimal
 from tinkoff.invest import (
     Client,
     OrderDirection,
@@ -23,7 +22,7 @@ from tinkoff.invest import (
 )
 from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
-from utils import todays_candles_to_df, get_data, detect_min_incr
+from utils import todays_candles_to_df, get_data, detect_min_incr, UID
 import orders
 import settings as s
 from subscribers import orders_subscriber, rsi_subscriber
@@ -67,7 +66,7 @@ load_dotenv()
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
 ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
 # FIGI = s.config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточните при необходимости)
-UID = getenv('UID')
+# UID = getenv('UID')
 
 COMMISSION_RATE = s.config['strategy']['commission_rate']  # Пример: 0.025% (round-turn => 0.0005)
 SPREAD_TICKS = s.config['strategy']['spread_ticks']  # Пример: 2 тика
