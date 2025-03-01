@@ -18,7 +18,7 @@ from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersRespons
 from tinkoff.invest.async_services import AsyncServices, PostOrderAsyncRequest
 from tinkoff.invest.utils import now
 
-from utils import TOKEN, FIGI, ACCOUNT_ID, INSTRUMENT_ID, change_quotation
+from utils import TOKEN, ACCOUNT_ID, INSTRUMENT_ID, change_quotation
 import settings as s
 import utils as u
 

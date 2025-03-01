@@ -1,5 +1,5 @@
 tinkoff:
-  figi: 'FUTNGM022500' # 'FUTIMOEXF000'
+#  figi: 'FUTNGM022500' # 'FUTIMOEXF000'
   instrument_id: afbc7c40-fe28-465b-80ee-2f047bd691e4 # NRG5
 #  instrument_id: 962e2a95-02a9-4171-abd7-aa198dbe643a #GAZP
 

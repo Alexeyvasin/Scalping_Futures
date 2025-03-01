@@ -66,19 +66,21 @@ load_dotenv()
 
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
 ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
-FIGI = s.config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточните при необходимости)
+# FIGI = s.config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточните при необходимости)
+UID = getenv('UID')
 
 COMMISSION_RATE = s.config['strategy']['commission_rate']  # Пример: 0.025% (round-turn => 0.0005)
 SPREAD_TICKS = s.config['strategy']['spread_ticks']  # Пример: 2 тика
 order_lock = asyncio.Lock()
 
+
 class ScalpingBot:
-    def __init__(self, token, account_id, figi):
+    def __init__(self, token, account_id):
         self.main_loop = None
         self.trading_active = False
         self.token = token
         self.account_id = account_id
-        self.figi = figi
+        # self.figi = figi
 
         # Храним последние n свечей в DataFrame
         self.df = pd.DataFrame(columns=["time", "open", "close", "high", "low", "volume"])
@@ -148,7 +150,8 @@ class ScalpingBot:
         self.order_id = f"scalping_{now().timestamp()}_{direction}"
 
         request = PostOrderRequest(
-            figi=self.figi,
+            # figi=self.figi,
+            instrument_id=UID,
             quantity=self.lot_size,
             price=None,  # market order, if supported
             direction=order_direction,
@@ -193,7 +196,8 @@ class ScalpingBot:
 
         with Client(self.token) as client:
             request = PostOrderRequest(
-                figi=self.figi,
+                # figi=self.figi,
+                instrument_id=UID,
                 quantity=self.lot_size,
                 price=None,
                 direction=direction,
@@ -262,9 +266,9 @@ class ScalpingBot:
         s.logger.info(f'[update_data] Future quantity = {futures_quantity}')
         s.logger.info(f'[update_data] Orders_prices =  {orders_prices}')
         for n, stop in enumerate(stops):
-            direction = 'BUY' if stop.direction == 1  else 'SELL'
+            direction = 'BUY' if stop.direction == 1 else 'SELL'
             stop_type = 'SL' if stop.order_type == 2 else 'TP'
-            s.logger.info(f'[update_data]  Stop_{n+1}: Direction= {direction}.'
+            s.logger.info(f'[update_data]  Stop_{n + 1}: Direction= {direction}.'
                           f' Type= {stop_type}. Stop_price= {quotation_to_decimal(stop.stop_price)}')
 
     async def get_account_balance(self):
@@ -312,7 +316,8 @@ class ScalpingBot:
                     subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
                     instruments=[
                         CandleInstrument(
-                            figi=self.figi,
+                            # figi=self.figi,
+                            instrument_id=UID,
                             interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE,
                         )
                     ],
@@ -376,6 +381,7 @@ class ScalpingBot:
     # Candle & strategy logic
     # ----------------------------------------------------------
     def on_new_candle(self, candle):
+        print('*on_new_candle')
         """Обработка каждой новой минутной свечи (sync code, called from the streaming thread)."""
         open_price = float(quotation_to_decimal(candle.open))
         close_price = float(quotation_to_decimal(candle.close))
@@ -485,6 +491,8 @@ class ScalpingBot:
 
     async def _generate_signal_and_trade(self):
         """Асинхронная логика генерации сигналов + исполнение сделок."""
+        print(f'*df')
+        print(self.df)
 
         if detect_min_incr(self):
             logging.info(f'[_generate_signal_and_trade] not pass detect_min_incr')
@@ -543,7 +551,7 @@ class ScalpingBot:
             if quantity > 0:
                 direction = OrderDirection.ORDER_DIRECTION_SELL
                 s.logger.info(f'[_g_s_a_t]. Signal SHORT. Order to sell')
-                await orders.open_position_with_stops(direction, quantity,  self)
+                await orders.open_position_with_stops(direction, quantity, self)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""
@@ -681,7 +689,7 @@ async def main():
     bot = ScalpingBot(
         token=TOKEN,
         account_id=ACCOUNT_ID,
-        figi=FIGI,
+        # figi=FIGI,
     )
 
     # 1) Grab the currently running event loop:

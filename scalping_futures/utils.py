@@ -27,8 +27,8 @@ load_dotenv()
 
 TOKEN = os.getenv('TINKOFF_TOKEN')
 ACCOUNT_ID = os.getenv('ACCOUNT_ID')
-FIGI = config['tinkoff']['figi']
-INSTRUMENT_ID = config['tinkoff']['instrument_id']
+# FIGI = config['tinkoff']['figi']
+INSTRUMENT_ID = os.getenv('UID')
 
 
 def load_future():
@@ -80,11 +80,12 @@ def get_quotation(price: float) -> Quotation:
     return Quotation(units=units, nano=nano)
 
 
-async def get_candles_on_today(figi, client: AsyncServices):
+async def get_candles_on_today(uid, client: AsyncServices):
     now_ = now()
     from_today = datetime.datetime(now_.year, now_.month, now_.day, 6, 0, 0)
     candles = await client.market_data.get_candles(
-        figi=figi,
+        # figi=figi,
+        instrument_id=uid,
         from_=from_today,
         to=now_,
         interval=CandleInterval.CANDLE_INTERVAL_1_MIN
@@ -126,7 +127,7 @@ def on_historical_candle(candle, df: pd.DataFrame):
 async def todays_candles_to_df() -> pd.DataFrame:
     df = pd.DataFrame()
     async with AsyncClient(TOKEN) as client:
-        future_candles = await get_candles_on_today(FIGI, client)
+        future_candles = await get_candles_on_today(INSTRUMENT_ID, client)
 
     for future_candle in future_candles:
         df = on_historical_candle(future_candle, df)
