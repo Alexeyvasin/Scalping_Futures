@@ -1,0 +1,718 @@
+[2025-02-28 07:51:22,077] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'IOCP/Socket: Connection aborted (An established connection was aborted by the software in your host machine.\r\n -- 10053)', Metadata(tracking_id=None, ratelimit_limit='600, 600;w=60', ratelimit_remaining=598, ratelimit_reset=32, message=None))
+[2025-02-28 07:51:22,094] [INFO] Will retry after 1 seconds...
+[2025-02-28 07:51:23,232] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 07:51:23,234] [INFO] Will retry after 2.1811625912205703 seconds...
+[2025-02-28 07:51:25,505] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 07:51:25,506] [INFO] Will retry after 4.818120311972621 seconds...
+[2025-02-28 07:51:50,412] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'failed to connect to all addresses; last error: UNKNOWN: ipv4:185.65.149.161:443: tcp handshaker shutdown', None)
+[2025-02-28 07:51:50,412] [INFO] Will retry after 10.478756438223535 seconds...
+[2025-02-28 07:52:20,971] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'failed to connect to all addresses; last error: UNKNOWN: ipv4:185.65.149.161:443: tcp handshaker shutdown', None)
+[2025-02-28 07:52:20,971] [INFO] Will retry after 21.488492282974256 seconds...
+[2025-02-28 19:02:09,581] [INFO] [start] It`s starting...
+[2025-02-28 19:02:09,582] [INFO] -----------------------------
+[2025-02-28 19:02:10,872] [INFO] [get_data] Last operation Operation(id='2041006211821767433', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-348, nano=-170000000), price=MoneyValue(currency='pt.', units=4, nano=19000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM022500', instrument_type='futures', date=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006211821732882', date_time=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=4, nano=19000000))], asset_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', position_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', child_operations=[ChildOperationItem(instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:02:10,872] [INFO] [get_data]. Price of last operation: 4.01900000
+[2025-02-28 19:02:10,874] [INFO] [update_data] Future quantity = 0
+[2025-02-28 19:02:10,874] [INFO] [update_data] Orders_prices =  ()
+[2025-02-28 19:06:12,650] [INFO] [start] It`s starting...
+[2025-02-28 19:06:12,650] [INFO] -----------------------------
+[2025-02-28 19:06:13,407] [INFO] [get_data] Last operation Operation(id='2041006211821767433', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-348, nano=-170000000), price=MoneyValue(currency='pt.', units=4, nano=19000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM022500', instrument_type='futures', date=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006211821732882', date_time=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=4, nano=19000000))], asset_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', position_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', child_operations=[ChildOperationItem(instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:06:13,408] [INFO] [get_data]. Price of last operation: 4.01900000
+[2025-02-28 19:06:13,409] [INFO] [update_data] Future quantity = 0
+[2025-02-28 19:06:13,409] [INFO] [update_data] Orders_prices =  ()
+[2025-02-28 19:06:13,598] [ERROR] Error in stream processing: <class 'AttributeError'> 'ScalpingBot' object has no attribute 'figi'
+[2025-02-28 19:06:13,599] [INFO] Will retry after 1 seconds...
+[2025-02-28 19:06:14,617] [ERROR] Error in stream processing: <class 'AttributeError'> 'ScalpingBot' object has no attribute 'figi'
+[2025-02-28 19:06:14,617] [INFO] Will retry after 2.344714890761338 seconds...
+[2025-02-28 19:06:16,959] [ERROR] Error in stream processing: <class 'AttributeError'> 'ScalpingBot' object has no attribute 'figi'
+[2025-02-28 19:06:16,959] [INFO] Will retry after 4.8005220154482275 seconds...
+[2025-02-28 19:06:21,762] [ERROR] Error in stream processing: <class 'AttributeError'> 'ScalpingBot' object has no attribute 'figi'
+[2025-02-28 19:06:21,762] [INFO] Will retry after 10.030814781950799 seconds...
+[2025-02-28 19:06:31,805] [ERROR] Error in stream processing: <class 'AttributeError'> 'ScalpingBot' object has no attribute 'figi'
+[2025-02-28 19:06:31,805] [INFO] Will retry after 20.372376723992613 seconds...
+[2025-02-28 19:11:00,328] [INFO] [start] It`s starting...
+[2025-02-28 19:11:00,329] [INFO] -----------------------------
+[2025-02-28 19:11:01,316] [INFO] [get_data] Last operation Operation(id='2041006211821767433', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-348, nano=-170000000), price=MoneyValue(currency='pt.', units=4, nano=19000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM022500', instrument_type='futures', date=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006211821732882', date_time=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=4, nano=19000000))], asset_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', position_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', child_operations=[ChildOperationItem(instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:11:01,316] [INFO] [get_data]. Price of last operation: 4.01900000
+[2025-02-28 19:11:01,317] [INFO] [update_data] Future quantity = 0
+[2025-02-28 19:11:01,317] [INFO] [update_data] Orders_prices =  ()
+[2025-02-28 19:11:22,876] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:22,975] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:26,023] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:26,464] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:29,395] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:32,606] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:32,703] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:33,905] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:34,037] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:37,309] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:37,414] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:40,687] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:40,788] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:44,329] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:44,431] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:48,809] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:48,912] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:11:59,377] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:02,309] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:02,467] [INFO] [rsi_subscriber]  Trying to BUY. quantity= 1.
+[2025-02-28 19:12:02,467] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:12:02,473] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:02,749] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.INVALID_ARGUMENT: (3, 'invalid argument')>, '30052', Metadata(tracking_id='574315dd41193e780923289c35b2cd96', ratelimit_limit='450, 450;w=60', ratelimit_remaining=449, ratelimit_reset=58, message='Instrument forbidden for trading by API'))
+[2025-02-28 19:12:02,749] [INFO] Will retry after 1 seconds...
+[2025-02-28 19:12:04,025] [INFO] [rsi_subscriber]  Trying to BUY. quantity= 1.
+[2025-02-28 19:12:04,025] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:12:04,030] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:04,209] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.INVALID_ARGUMENT: (3, 'invalid argument')>, '30052', Metadata(tracking_id='e74fdb7799d54156822ce7a4b44d9d55', ratelimit_limit='450, 450;w=60', ratelimit_remaining=448, ratelimit_reset=56, message='Instrument forbidden for trading by API'))
+[2025-02-28 19:12:04,210] [INFO] Will retry after 2.5391187904183234 seconds...
+[2025-02-28 19:12:05,285] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:05,298] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:06,765] [INFO] [rsi_subscriber]  Trying to BUY. quantity= 1.
+[2025-02-28 19:12:06,766] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:12:06,929] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:06,929] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.INVALID_ARGUMENT: (3, 'invalid argument')>, '30052', Metadata(tracking_id='da4887a6947a1f1ba0d5e9873211611f', ratelimit_limit='450, 450;w=60', ratelimit_remaining=447, ratelimit_reset=54, message='Instrument forbidden for trading by API'))
+[2025-02-28 19:12:06,930] [INFO] Will retry after 5.935151666555549 seconds...
+[2025-02-28 19:12:08,637] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:08,649] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:08,663] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:09,078] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:09,094] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:09,100] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,049] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,056] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,072] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,725] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,752] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,758] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,830] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,843] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:11,847] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:12,267] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:12,272] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:12,278] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:12,874] [INFO] It`S NEED TO SELL! RSI = 100.0
+[2025-02-28 19:12:12,875] [INFO] [rsi_subscriber]  Trying to SELL. quantity= 1.
+[2025-02-28 19:12:12,875] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:12:13,031] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.INVALID_ARGUMENT: (3, 'invalid argument')>, '30052', Metadata(tracking_id='1fc7e74edfc13f78ad47032fee57c13b', ratelimit_limit='450, 450;w=60', ratelimit_remaining=446, ratelimit_reset=47, message='Instrument forbidden for trading by API'))
+[2025-02-28 19:12:13,031] [INFO] Will retry after 12.803551194167731 seconds...
+[2025-02-28 19:12:13,082] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:17,944] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:17,991] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:18,001] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:18,008] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:18,054] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:18,078] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:18,087] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:18,093] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:22,305] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:22,352] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:22,358] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:22,363] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:25,564] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:25,569] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:25,582] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:25,595] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:25,843] [INFO] It`S NEED TO SELL! RSI = 100.0
+[2025-02-28 19:12:25,843] [INFO] [rsi_subscriber]  Trying to SELL. quantity= 1.
+[2025-02-28 19:12:25,843] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:12:26,022] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:26,023] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.INVALID_ARGUMENT: (3, 'invalid argument')>, '30052', Metadata(tracking_id='720806f70da2f8ddd50adf93983e10ba', ratelimit_limit='450, 450;w=60', ratelimit_remaining=445, ratelimit_reset=35, message='Instrument forbidden for trading by API'))
+[2025-02-28 19:12:26,023] [INFO] Will retry after 25.96128893081634 seconds...
+[2025-02-28 19:12:28,328] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:28,385] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:28,394] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:28,403] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:28,413] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:31,837] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:31,873] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:31,894] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:31,918] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:31,928] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:31,965] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:32,013] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:32,020] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:32,027] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:32,035] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:39,551] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:39,594] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:39,601] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:39,625] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:39,631] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:47,337] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:47,360] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:47,381] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:47,386] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:47,390] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:48,237] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:48,245] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:48,272] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:48,276] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:48,281] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,524] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,546] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,552] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,575] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,580] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,655] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,669] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,684] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,697] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:50,703] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:51,503] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:51,526] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:51,531] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:51,554] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:51,559] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:52,270] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,101] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,106] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,119] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,133] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,147] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,160] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,191] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,205] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,218] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,231] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,244] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:53,260] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,323] [INFO] It`S NEED TO SELL! RSI = 100.0
+[2025-02-28 19:12:54,323] [INFO] [rsi_subscriber]  Trying to SELL. quantity= 1.
+[2025-02-28 19:12:54,323] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:12:54,330] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,351] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,365] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,378] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,383] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,397] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,429] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,444] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,475] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,488] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,493] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,498] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:54,562] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.INVALID_ARGUMENT: (3, 'invalid argument')>, '30052', Metadata(tracking_id='4c97761d9b2c2e1208b8093960c10066', ratelimit_limit='450, 450;w=60', ratelimit_remaining=444, ratelimit_reset=6, message='Instrument forbidden for trading by API'))
+[2025-02-28 19:12:54,562] [INFO] Will retry after 52.05413979966593 seconds...
+[2025-02-28 19:12:56,406] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:56,419] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:56,440] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:56,445] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:56,458] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:56,472] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,678] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,707] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,726] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,745] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,762] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,769] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,788] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,806] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,878] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,903] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,916] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:58,921] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:59,365] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:59,380] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:59,412] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:59,418] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:59,423] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:12:59,428] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,640] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,665] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,690] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,697] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,702] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,708] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,746] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,771] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,799] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,806] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,812] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:01,819] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,672] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,686] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,700] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,713] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,726] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,741] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,769] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,783] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,797] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,811] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,825] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:05,840] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:07,782] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:07,796] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:07,809] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:07,822] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:07,836] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:07,849] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,733] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,747] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,762] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,776] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,798] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,804] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,837] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,852] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,866] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,897] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,902] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:31,906] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:34,657] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:34,670] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:34,685] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:34,706] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:34,711] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:34,725] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:35,490] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:35,504] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:35,517] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:35,531] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:35,545] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:35,559] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,350] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,355] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,369] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,391] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,396] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,410] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,441] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,454] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,477] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,482] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,495] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:36,510] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:38,919] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:38,933] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:38,948] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:38,982] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:38,987] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:38,993] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,253] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,318] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,344] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,354] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,363] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,384] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,456] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,464] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,471] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,479] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,487] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:41,495] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:42,355] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:42,361] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:42,366] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:42,390] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:42,407] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:42,413] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:46,626] [INFO] It`S NEED TO SELL! RSI = 92.85714285714286
+[2025-02-28 19:13:46,626] [INFO] [rsi_subscriber]  Trying to SELL. quantity= 1.
+[2025-02-28 19:13:46,626] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:13:46,784] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.INVALID_ARGUMENT: (3, 'invalid argument')>, '30052', Metadata(tracking_id='66fc2b230dd55f982efac7eb35d2029a', ratelimit_limit='450, 450;w=60', ratelimit_remaining=449, ratelimit_reset=14, message='Instrument forbidden for trading by API'))
+[2025-02-28 19:13:46,784] [INFO] Will retry after 60 seconds...
+[2025-02-28 19:13:46,815] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:55,155] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:55,169] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:55,183] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:55,205] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:55,210] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:55,226] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:55,242] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:56,136] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:56,141] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:56,155] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:56,198] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:56,204] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:56,210] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:13:56,216] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:19,554] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:19,597] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:19,620] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:19,625] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:19,630] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:19,636] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:19,641] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:20,885] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:20,899] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:20,913] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:20,927] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:20,941] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:20,963] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:20,968] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:30,951] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:30,973] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:30,987] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:31,001] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:31,015] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:31,020] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:31,033] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:32,078] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:32,095] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:32,119] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:32,143] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:32,156] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:32,162] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:32,167] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,192] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,208] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,233] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,267] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,273] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,278] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,284] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,310] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,327] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,368] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,373] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,378] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,384] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:34,391] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,182] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,205] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,211] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,224] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,238] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,252] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,265] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,588] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,622] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,654] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,660] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,665] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,671] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,676] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,919] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,933] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,948] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,962] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,967] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,981] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:35,995] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:39,057] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:39,072] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:39,086] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:39,100] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:39,115] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:39,137] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:39,142] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:43,560] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:43,578] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:43,653] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:43,661] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:43,671] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:43,678] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:43,684] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:46,963] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:49,979] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:49,994] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:50,010] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:50,026] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:50,042] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:50,075] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:50,080] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:50,086] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,419] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,424] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,439] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,453] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,467] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,483] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,498] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,512] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,526] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,540] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,554] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,568] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,582] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,596] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,610] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:14:54,624] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,270] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,287] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,332] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,356] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,363] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,369] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,374] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,380] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,767] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,781] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,804] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,810] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,833] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,838] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,862] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:00,868] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,590] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,605] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,620] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,635] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,650] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,665] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,690] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,695] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,883] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,907] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,947] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,952] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,957] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,963] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,968] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:01,973] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,597] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,629] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,634] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,640] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,654] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,678] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,683] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:02,698] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,477] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,502] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,508] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,542] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,566] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,572] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,578] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:19,584] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,496] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,511] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,538] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,566] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,603] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,611] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,620] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:23,627] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,582] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,596] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,632] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,646] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,670] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,676] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,691] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:24,706] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,508] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,526] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,557] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,572] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,604] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,610] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,616] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:25,621] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,847] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,862] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,888] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,894] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,922] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,950] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,956] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:28,963] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,041] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,048] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,053] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,058] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,064] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,081] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,087] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:29,094] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,851] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,875] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,899] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,914] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,930] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,935] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,942] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,948] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,974] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:37,998] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,039] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,046] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,052] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,058] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,065] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,071] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,105] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,137] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,143] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,148] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,162] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,176] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,190] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:38,204] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,073] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,117] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,141] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,157] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,164] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,170] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,176] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:39,182] [INFO] Not enough data for EMA calculations.
+[2025-02-28 19:15:47,533] [INFO] [start] It`s starting...
+[2025-02-28 19:15:47,533] [INFO] -----------------------------
+[2025-02-28 19:15:48,316] [INFO] [get_data] Last operation Operation(id='2041006211821767433', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-348, nano=-170000000), price=MoneyValue(currency='pt.', units=4, nano=19000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM022500', instrument_type='futures', date=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006211821732882', date_time=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=4, nano=19000000))], asset_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', position_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', child_operations=[ChildOperationItem(instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:15:48,316] [INFO] [get_data]. Price of last operation: 4.01900000
+[2025-02-28 19:15:48,316] [INFO] [update_data] Future quantity = 0
+[2025-02-28 19:15:48,316] [INFO] [update_data] Orders_prices =  ()
+[2025-02-28 19:15:48,339] [ERROR] Произошла непредвиденная ошибка: <class 'NameError'> name 'FIGI' is not defined
+Traceback (most recent call last):
+  File "C:\Users\alexey.vasin\PycharmProjects\Scalping_Futures\scalping_futures\main_ChatGPT_o1.py", line 701, in main
+    await bot.start()
+  File "C:\Users\alexey.vasin\PycharmProjects\Scalping_Futures\scalping_futures\main_ChatGPT_o1.py", line 347, in start
+    self.df = await todays_candles_to_df()  # getting a DataFrame with historical candles on today
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alexey.vasin\PycharmProjects\Scalping_Futures\scalping_futures\utils.py", line 129, in todays_candles_to_df
+    future_candles = await get_candles_on_today(FIGI, client)
+                                                ^^^^
+NameError: name 'FIGI' is not defined
+[2025-02-28 19:17:02,419] [INFO] [start] It`s starting...
+[2025-02-28 19:17:02,419] [INFO] -----------------------------
+[2025-02-28 19:17:03,174] [INFO] [get_data] Last operation Operation(id='2041006211821767433', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-348, nano=-170000000), price=MoneyValue(currency='pt.', units=4, nano=19000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM022500', instrument_type='futures', date=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006211821732882', date_time=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=4, nano=19000000))], asset_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', position_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', child_operations=[ChildOperationItem(instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:17:03,175] [INFO] [get_data]. Price of last operation: 4.01900000
+[2025-02-28 19:17:03,176] [INFO] [update_data] Future quantity = 0
+[2025-02-28 19:17:03,176] [INFO] [update_data] Orders_prices =  ()
+[2025-02-28 19:57:17,842] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:57:17,854] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:57:17,954] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:57:17,954] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:57:18,443] [INFO] [events_orders] order 2cdc5c8b-2eb6-45f1-bd38-20ea3fe652ee HAPPENED!
+[2025-02-28 19:57:18,444] [INFO] [order state] OrderStateStreamResponse(order_state=OrderStateStreamOrderState(order_id='6fc34641-f018-47a3-8761-4c26ae1c2f9c', order_request_id='2cdc5c8b-2eb6-45f1-bd38-20ea3fe652ee', client_code='', created_at=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), execution_report_status=<OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW: 4>, status_info=<StatusCauseInfo.CAUSE_UNSPECIFIED: 0>, ticker='NRH5', class_code='SPBFUT', lot_size=1, direction=<OrderDirection.ORDER_DIRECTION_SELL: 2>, time_in_force=<TimeInForceType.TIME_IN_FORCE_DAY: 1>, order_type=<OrderType.ORDER_TYPE_MARKET: 2>, account_id='2222220063', initial_order_price=MoneyValue(currency='RUB', units=3, nano=840000000), order_price=MoneyValue(currency='RUB', units=0, nano=0), amount=MoneyValue(currency='RUB', units=338, nano=920000000), executed_order_price=MoneyValue(currency='RUB', units=0, nano=0), currency='RUB', lots_requested=1, lots_executed=0, lots_left=0, lots_cancelled=0, marker=<MarkerType.MARKER_UNKNOWN: 0>, trades=[], completion_time=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), exchange='MOEX', instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994'), ping=None, subscription=None)
+[2025-02-28 19:57:18,531] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:57:18,531] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:57:18,544] [INFO] [o_p_w_s] PostOrderAsyncResponse(order_request_id='2cdc5c8b-2eb6-45f1-bd38-20ea3fe652ee', execution_report_status=<OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW: 4>, trade_intent_id='6fc34641-f018-47a3-8761-4c26ae1c2f9c')
+[2025-02-28 19:57:19,621] [INFO] [get_data] Last operation Operation(id='2041006211821767433', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-348, nano=-170000000), price=MoneyValue(currency='pt.', units=4, nano=19000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM022500', instrument_type='futures', date=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006211821732882', date_time=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=4, nano=19000000))], asset_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', position_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', child_operations=[ChildOperationItem(instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:57:19,625] [INFO] [get_data]. Price of last operation: 4.01900000
+[2025-02-28 19:57:19,625] [INFO] [update_data] Future quantity = -1
+[2025-02-28 19:57:19,626] [INFO] [update_data] Orders_prices =  (MoneyValue(currency='pt.', units=4, nano=19000000),)
+[2025-02-28 19:57:23,527] [INFO] [get_data] Last operation Operation(id='2041006211821767433', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-348, nano=-170000000), price=MoneyValue(currency='pt.', units=4, nano=19000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM022500', instrument_type='futures', date=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006211821732882', date_time=datetime.datetime(2025, 2, 25, 17, 13, 15, 296000, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=4, nano=19000000))], asset_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', position_uid='1fa4b56d-4a86-4b2f-8127-c4d0e3a47a63', instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', child_operations=[ChildOperationItem(instrument_uid='afbc7c40-fe28-465b-80ee-2f047bd691e4', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:57:23,527] [INFO] [get_data]. Price of last operation: 4.01900000
+[2025-02-28 19:57:23,527] [INFO] [update_data] Future quantity = -1
+[2025-02-28 19:57:23,527] [INFO] [update_data] Orders_prices =  (MoneyValue(currency='pt.', units=4, nano=19000000),)
+[2025-02-28 19:57:23,555] [INFO] [post_stop_orders] Direction for stop = 1
+[2025-02-28 19:57:23,924] [INFO] [o_p_w_s] stop_orders are applied.
+ (PostStopOrderResponse(stop_order_id='ca560620-0c11-43f4-86be-aeda3a1be821', order_request_id='', response_metadata=ResponseMetadata(tracking_id='cde5939e845dffbb03f044ecfbe03b72', server_time=datetime.datetime(2025, 2, 28, 16, 57, 23, 844333, tzinfo=datetime.timezone.utc))), PostStopOrderResponse(stop_order_id='1a85e410-39a1-4fb7-ac56-80cd09eb59d6', order_request_id='', response_metadata=ResponseMetadata(tracking_id='5d2b46ab24a5c4f03f2181d48be56377', server_time=datetime.datetime(2025, 2, 28, 16, 57, 23, 900073, tzinfo=datetime.timezone.utc))))
+[2025-02-28 19:58:35,491] [INFO] [events_orders] order None HAPPENED!
+[2025-02-28 19:58:35,491] [INFO] [order state] OrderStateStreamResponse(order_state=OrderStateStreamOrderState(order_id='ca560620-0c11-43f4-86be-aeda3a1be821', order_request_id=None, client_code='', created_at=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), execution_report_status=<OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW: 4>, status_info=<StatusCauseInfo.CAUSE_UNSPECIFIED: 0>, ticker='NRH5', class_code='SPBFUT', lot_size=1, direction=<OrderDirection.ORDER_DIRECTION_BUY: 1>, time_in_force=<TimeInForceType.TIME_IN_FORCE_DAY: 1>, order_type=<OrderType.ORDER_TYPE_MARKET: 2>, account_id='2222220063', initial_order_price=MoneyValue(currency='RUB', units=3, nano=852000000), order_price=MoneyValue(currency='RUB', units=0, nano=0), amount=MoneyValue(currency='RUB', units=339, nano=980000000), executed_order_price=MoneyValue(currency='RUB', units=0, nano=0), currency='RUB', lots_requested=1, lots_executed=0, lots_left=0, lots_cancelled=0, marker=<MarkerType.MARKER_UNKNOWN: 0>, trades=[], completion_time=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), exchange='MOEX', instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994'), ping=None, subscription=None)
+[2025-02-28 19:58:36,363] [INFO] [get_data] Last operation Operation(id='2041006224706658714', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=339, nano=980000000), price=MoneyValue(currency='pt.', units=3, nano=852000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM032500', instrument_type='futures', date=datetime.datetime(2025, 2, 28, 16, 57, 18, 424843, tzinfo=datetime.timezone.utc), type='Продажа ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_SELL: 22>, trades=[OperationTrade(trade_id='2041006224706635026', date_time=datetime.datetime(2025, 2, 28, 16, 57, 18, 424843, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=3, nano=852000000))], asset_uid='1fa4f727-8eb2-4903-935f-d99872632940', position_uid='1fa4f727-8eb2-4903-935f-d99872632940', instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994', child_operations=[ChildOperationItem(instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994', payment=MoneyValue(currency='rub', units=0, nano=-80000000))])
+[2025-02-28 19:58:36,364] [INFO] [get_data]. Price of last operation: 3.85200000
+[2025-02-28 19:58:36,364] [INFO] [update_data] Future quantity = -1
+[2025-02-28 19:58:36,364] [INFO] [update_data] Orders_prices =  (MoneyValue(currency='pt.', units=3, nano=852000000),)
+[2025-02-28 19:58:36,365] [INFO] [update_data]  Stop_1: Direction= BUY. Type= SL. Stop_price= 4.03200000
+[2025-02-28 19:58:40,842] [INFO] [get_data] Last operation Operation(id='2041006224706659210', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-340, nano=-70000000), price=MoneyValue(currency='pt.', units=3, nano=853000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM032500', instrument_type='futures', date=datetime.datetime(2025, 2, 28, 16, 58, 35, 491805, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006224706635042', date_time=datetime.datetime(2025, 2, 28, 16, 58, 35, 491805, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=3, nano=853000000))], asset_uid='1fa4f727-8eb2-4903-935f-d99872632940', position_uid='1fa4f727-8eb2-4903-935f-d99872632940', instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994', child_operations=[ChildOperationItem(instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:58:40,842] [INFO] [get_data]. Price of last operation: 3.85300000
+[2025-02-28 19:58:40,842] [INFO] [update_data] Future quantity = 0
+[2025-02-28 19:58:40,842] [INFO] [update_data] Orders_prices =  ()
+[2025-02-28 19:58:40,849] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:58:40,849] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:58:47,719] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:58:47,719] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:58:47,821] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:58:47,821] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:58:55,630] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:58:55,630] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:59:03,710] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:59:03,710] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:59:14,494] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:59:14,494] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:59:14,595] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:59:14,595] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:59:24,284] [INFO] [events_orders] order 18397c75-e7ac-4023-afdf-43d49be3ed5e HAPPENED!
+[2025-02-28 19:59:24,285] [INFO] [order state] OrderStateStreamResponse(order_state=OrderStateStreamOrderState(order_id='ef8b20a4-17b3-4819-ba18-5f31509048c4', order_request_id='18397c75-e7ac-4023-afdf-43d49be3ed5e', client_code='', created_at=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), execution_report_status=<OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW: 4>, status_info=<StatusCauseInfo.CAUSE_UNSPECIFIED: 0>, ticker='NRH5', class_code='SPBFUT', lot_size=1, direction=<OrderDirection.ORDER_DIRECTION_SELL: 2>, time_in_force=<TimeInForceType.TIME_IN_FORCE_DAY: 1>, order_type=<OrderType.ORDER_TYPE_MARKET: 2>, account_id='2222220063', initial_order_price=MoneyValue(currency='RUB', units=3, nano=838000000), order_price=MoneyValue(currency='RUB', units=0, nano=0), amount=MoneyValue(currency='RUB', units=338, nano=740000000), executed_order_price=MoneyValue(currency='RUB', units=0, nano=0), currency='RUB', lots_requested=1, lots_executed=0, lots_left=0, lots_cancelled=0, marker=<MarkerType.MARKER_UNKNOWN: 0>, trades=[], completion_time=datetime.datetime(1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), exchange='MOEX', instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994'), ping=None, subscription=None)
+[2025-02-28 19:59:24,373] [INFO] [o_p_w_s] PostOrderAsyncResponse(order_request_id='18397c75-e7ac-4023-afdf-43d49be3ed5e', execution_report_status=<OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW: 4>, trade_intent_id='ef8b20a4-17b3-4819-ba18-5f31509048c4')
+[2025-02-28 19:59:24,397] [INFO] [_g_s_a_t]. Signal SHORT. Order to sell
+[2025-02-28 19:59:24,397] [INFO] [o_p_w_s] i am working...
+[2025-02-28 19:59:25,288] [INFO] [get_data] Last operation Operation(id='2041006224706659210', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=-340, nano=-70000000), price=MoneyValue(currency='pt.', units=3, nano=853000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM032500', instrument_type='futures', date=datetime.datetime(2025, 2, 28, 16, 58, 35, 491805, tzinfo=datetime.timezone.utc), type='Покупка ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_BUY: 15>, trades=[OperationTrade(trade_id='2041006224706635042', date_time=datetime.datetime(2025, 2, 28, 16, 58, 35, 491805, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=3, nano=853000000))], asset_uid='1fa4f727-8eb2-4903-935f-d99872632940', position_uid='1fa4f727-8eb2-4903-935f-d99872632940', instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994', child_operations=[ChildOperationItem(instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994', payment=MoneyValue(currency='rub', units=0, nano=-90000000))])
+[2025-02-28 19:59:25,288] [INFO] [get_data]. Price of last operation: 3.85300000
+[2025-02-28 19:59:25,288] [INFO] [update_data] Future quantity = -1
+[2025-02-28 19:59:25,289] [INFO] [update_data] Orders_prices =  (MoneyValue(currency='pt.', units=3, nano=853000000),)
+[2025-02-28 19:59:29,370] [INFO] [post_stop_orders] Direction for stop = 1
+[2025-02-28 19:59:29,632] [INFO] [get_data] Last operation Operation(id='2041006224706659360', parent_operation_id='', currency='rub', payment=MoneyValue(currency='rub', units=339, nano=800000000), price=MoneyValue(currency='pt.', units=3, nano=850000000), state=<OperationState.OPERATION_STATE_EXECUTED: 1>, quantity=1, quantity_rest=0, figi='FUTNGM032500', instrument_type='futures', date=datetime.datetime(2025, 2, 28, 16, 59, 24, 264692, tzinfo=datetime.timezone.utc), type='Продажа ценных бумаг', operation_type=<OperationType.OPERATION_TYPE_SELL: 22>, trades=[OperationTrade(trade_id='2041006224706635050', date_time=datetime.datetime(2025, 2, 28, 16, 59, 24, 264692, tzinfo=datetime.timezone.utc), quantity=1, price=MoneyValue(currency='rub', units=3, nano=850000000))], asset_uid='1fa4f727-8eb2-4903-935f-d99872632940', position_uid='1fa4f727-8eb2-4903-935f-d99872632940', instrument_uid='036c1a73-7d8e-411d-a8de-c2b3ef301994', child_operations=[])
+[2025-02-28 19:59:29,633] [INFO] [get_data]. Price of last operation: 3.85000000
+[2025-02-28 19:59:29,634] [INFO] [update_data] Future quantity = -1
+[2025-02-28 19:59:29,634] [INFO] [update_data] Orders_prices =  (MoneyValue(currency='pt.', units=3, nano=850000000),)
+[2025-02-28 19:59:29,635] [INFO] [o_p_w_s] stop_orders are applied.
+ (PostStopOrderResponse(stop_order_id='ecc41db6-2adb-4e5c-9a3b-ee1be2430785', order_request_id='', response_metadata=ResponseMetadata(tracking_id='6b3ffa161f89b38e623132fee2b6b9aa', server_time=datetime.datetime(2025, 2, 28, 16, 59, 29, 604501, tzinfo=datetime.timezone.utc))), PostStopOrderResponse(stop_order_id='fd0181a3-80a5-4e34-8f7c-68dde75083bc', order_request_id='', response_metadata=ResponseMetadata(tracking_id='0eb9ea6603033bb1b9a4b58fdab79b6c', server_time=datetime.datetime(2025, 2, 28, 16, 59, 29, 575227, tzinfo=datetime.timezone.utc))))
+[2025-02-28 20:01:29,642] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,643] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,643] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,643] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,643] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,643] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,644] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,644] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:01:29,644] [INFO] [o_p_w_s] cannot be executed. differ is too little: 0.0
+[2025-02-28 20:16:17,057] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'IOCP/Socket: Connection aborted (An established connection was aborted by the software in your host machine.\r\n -- 10053)', Metadata(tracking_id=None, ratelimit_limit='100, 100;w=60', ratelimit_remaining=99, ratelimit_reset=56, message=None))
+[2025-02-28 20:16:17,057] [INFO] Will retry after 1 seconds...
+[2025-02-28 20:16:18,081] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:16:18,081] [INFO] Will retry after 2.975151006640721 seconds...
+[2025-02-28 20:16:21,077] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:16:21,077] [INFO] Will retry after 5.993651407167813 seconds...
+[2025-02-28 20:16:27,083] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:16:27,083] [INFO] Will retry after 12.15397954476317 seconds...
+[2025-02-28 20:16:51,300] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:16:51,300] [INFO] Will retry after 24.58530945216136 seconds...
+[2025-02-28 20:17:15,903] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:17:15,903] [INFO] Will retry after 49.738636023308274 seconds...
+[2025-02-28 20:18:05,658] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:18:05,658] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:19:05,676] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:19:05,676] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:20:05,682] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:20:05,682] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:21:05,696] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:21:05,696] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:22:25,731] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'failed to connect to all addresses; last error: UNKNOWN: ipv4:185.65.149.161:443: tcp handshaker shutdown', None)
+[2025-02-28 20:22:25,732] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:23:25,732] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:23:25,732] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:24:25,731] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:24:25,731] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:25:25,751] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:25:25,751] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:26:25,756] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:26:25,756] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:27:25,767] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:27:25,767] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:28:25,765] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:28:25,765] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:29:25,771] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:29:25,771] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:30:25,786] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:30:25,787] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:31:25,800] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:31:25,800] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:32:25,819] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:32:25,819] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:33:25,832] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:33:25,832] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:34:25,851] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:34:25,851] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:35:25,865] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:35:25,865] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:36:25,894] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:36:25,894] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:37:25,915] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:37:25,915] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:38:25,922] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:38:25,922] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:39:25,934] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:39:25,934] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:40:26,244] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:40:26,244] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:41:26,249] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:41:26,249] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:42:26,247] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:42:26,247] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:43:26,256] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:43:26,256] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:44:26,272] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:44:26,272] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:45:26,286] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:45:26,286] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:46:26,317] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:46:26,317] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:47:26,339] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:47:26,339] [INFO] Will retry after 60 seconds...
+[2025-02-28 20:48:26,340] [ERROR] Error in stream processing: <class 'tinkoff.invest.exceptions.AioRequestError'> (<StatusCode.UNAVAILABLE: (14, 'unavailable')>, 'DNS resolution failed for invest-public-api.tinkoff.ru: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.\r\n -- 11001)', None)
+[2025-02-28 20:48:26,340] [INFO] Will retry after 60 seconds...
