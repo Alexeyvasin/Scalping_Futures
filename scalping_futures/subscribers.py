@@ -45,7 +45,7 @@ async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
                 #         await orders.open_position_with_stops(direction, quantity, bot)
 
             elif last_rsi < s.config['rsi']['for_buy']:
-                await orders.open_position_with_stops('rsi_for_buy')
+                await orders.open_position_with_stops('rsi_for_buy', bot)
                 # print(f' Hi from buy!')
                 # max_contracts = s.config['strategy']['max_contracts']
                 # if bot.futures_quantity != max_contracts:
@@ -55,7 +55,7 @@ async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
                 #         s.logger.info(f'[rsi_subscriber]  Trying to BUY. quantity= {quantity}.')
                 #         await orders.open_position_with_stops(direction, quantity, bot)
 
-            elif last_rsi < min(s.config['rsi']['for_close']): # and bot.futures_quantity < 0:
+            elif last_rsi < min(s.config['rsi']['for_close']) and bot.futures_quantity < 0:
                 await orders.open_position_with_stops('rsi_for_close', bot)
                 # print(f'Hi from CLOSE!')
                 # s.logger.info(f'It`S NEED TO CLOSE POSITIONS! RSI = {last_rsi}')
@@ -64,7 +64,8 @@ async def rsi_subscriber(event: aio.Event, bot: 'ScalpingBot') -> None:
                 # direction = OrderDirection.ORDER_DIRECTION_BUY
                 # await orders.open_position_with_stops(direction, quantity, bot)
 
-            # elif last_rsi > max(s.config['rsi']['for_close']) and bot.futures_quantity > 0:
+            elif last_rsi > max(s.config['rsi']['for_close']) and bot.futures_quantity > 0:
+                await orders.open_position_with_stops('rsi_for_close', bot)
                 # # deal = 'CLOSE'
                 # s.logger.info(f'It`S NEED TO CLOSE POSITIONS! RSI = {last_rsi}')
                 # quantity = abs(bot.futures_quantity)

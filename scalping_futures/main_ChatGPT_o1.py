@@ -342,7 +342,9 @@ class ScalpingBot:
     # Candle & strategy logic
     # ----------------------------------------------------------
     def on_new_candle(self, candle):
-        print('*on_new_candle')
+        # print('*on_new_ca)
+        # print(f'[on_new_candle] ')
+        # print(f'{self.df.tail()}')
         """Обработка каждой новой минутной свечи (sync code, called from the streaming thread)."""
         open_price = float(quotation_to_decimal(candle.open))
         close_price = float(quotation_to_decimal(candle.close))
@@ -404,7 +406,7 @@ class ScalpingBot:
         # if self.last_candle_time and current_candle_time != self.last_candle_time:
         if self.last_candle_time:
             self._on_candle_closed_handler(self.last_candle_time)
-            print(f'{self.last_candle_time}. rsi = {self.df.iloc[-1]['RSI']}')
+            # print(f'{self.last_candle_time}. rsi = {self.df.iloc[-1]['RSI']}')
 
         self.last_candle_time = current_candle_time
 

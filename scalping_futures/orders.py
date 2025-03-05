@@ -53,6 +53,7 @@ async def open_position_with_stops(signal,
             s.logger.info(f'[o_p_w_s] not trading time. Now is {now()}')
             return
         s.logger.info(f'[o_p_w_s] B---------------------------------')
+        s.logger.info(f'[o_p_w_s] Signal is {signal}')
         await bot.update_data()
         direction = None
         quantity = s.config['strategy']['max_contracts']
@@ -90,7 +91,7 @@ async def open_position_with_stops(signal,
                 direction = OrderDirection.ORDER_DIRECTION_SELL
 
         if direction is None or quantity == 0:
-            s.logger(f'[o_p_w_s]. direction is {direction}. quantity == {quantity}. return')
+            s.logger.info(f'[o_p_w_s]. direction is {direction}. quantity == {quantity}. return')
             return
 
 
