@@ -24,3 +24,6 @@ rsi:
   for_close:
     - 18
     - 82
+
+take_profit:
+  trailing_indent: 0.004

@@ -1,5 +1,6 @@
 import asyncio as aio
 import uuid
+from decimal import Decimal
 from pprint import pprint
 
 from tinkoff.invest import (
@@ -16,7 +17,7 @@ from tinkoff.invest import (
 )
 from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersResponse, StopOrderExpirationType
 from tinkoff.invest.async_services import AsyncServices, PostOrderAsyncRequest
-from tinkoff.invest.utils import now
+from tinkoff.invest.utils import now, decimal_to_quotation
 
 from utils import TOKEN, ACCOUNT_ID, UID, change_quotation
 import settings as s
@@ -42,15 +43,56 @@ except Exception:
 open_position_with_stops_lock = aio.Lock()
 
 
-async def open_position_with_stops(direction: OrderDirection,
-                                   quantity: int,
+async def open_position_with_stops(signal,
+                                   # direction: OrderDirection,
+                                   # quantity: int,
                                    bot: 'ScalpingBot') -> None:
-    s.logger.info(f'[o_p_w_s] i am working...')
-    if not u.is_trading_time():
-        s.logger.info(f'[o_p_w_s] not trading time. Now is {now()}')
-        return
-
     async with open_position_with_stops_lock:
+
+        if not u.is_trading_time():
+            s.logger.info(f'[o_p_w_s] not trading time. Now is {now()}')
+            return
+        s.logger.info(f'[o_p_w_s] B---------------------------------')
+        await bot.update_data()
+        direction = None
+        quantity = s.config['strategy']['max_contracts']
+        if signal == 'long':
+            quantity = quantity - bot.futures_quantity
+            if quantity > 0:
+                direction = OrderDirection.ORDER_DIRECTION_BUY
+
+        elif signal == 'short':
+            quantity = quantity + bot.futures_quantity
+            if quantity > 0:
+                direction = OrderDirection.ORDER_DIRECTION_SELL
+
+        elif signal == 'rsi_for_sell':
+            max_contracts = s.config['strategy']['max_contracts']
+            if bot.futures_quantity != max_contracts * -1:
+                if (quantity := max_contracts + bot.futures_quantity) > 0:
+                    s.logger.info(f'It`S NEED TO SELL! RSI = {float(bot.df['RSI'].iloc[-1])}')
+                    direction = OrderDirection.ORDER_DIRECTION_SELL
+                    s.logger.info(f'[rsi_subscriber]  Trying to SELL. quantity= {quantity}.')
+
+        elif signal == 'rsi_for_buy':
+            max_contracts = s.config['strategy']['max_contracts']
+            if bot.futures_quantity != max_contracts:
+                if (quantity := max_contracts - bot.futures_quantity) > 0:
+                    direction = OrderDirection.ORDER_DIRECTION_BUY
+                    s.logger.info(f'[rsi_subscriber]  Trying to BUY. quantity= {quantity}.')
+
+        elif signal == 'rsi_for_close':
+            s.logger.info(f'It`S NEED TO CLOSE POSITIONS! RSI = {float(bot.df['RSI'].iloc[-1])}')
+            quantity = abs(bot.futures_quantity)
+            if bot.futures_quantity < 0:
+                direction = OrderDirection.ORDER_DIRECTION_BUY
+            elif bot.futures_quantity > 0:
+                direction = OrderDirection.ORDER_DIRECTION_SELL
+
+        if direction is None or quantity == 0:
+            s.logger(f'[o_p_w_s]. direction is {direction}. quantity == {quantity}. return')
+            return
+
 
         if bot.futures_quantity:
             differ = abs(bot.last_operations_price - bot.df['close'].iloc[-1]) * 100 / bot.last_operations_price
@@ -78,10 +120,12 @@ async def open_position_with_stops(direction: OrderDirection,
         resp = await open_position(direction=direction, quantity=quantity)
         s.logger.info(f'[o_p_w_s] {resp}')
         await aio.sleep(5)
+        await bot.update_data()
         stop_resp = await post_stop_orders(bot)
         if stop_resp is not None:
             s.logger.info(f'[o_p_w_s] stop_orders are applied.\n {stop_resp}')
         await aio.sleep(120)
+        s.logger.info(f'[o_p_w_s] E---------------------------------')
 
 
 async def open_position(direction: OrderDirection,
@@ -116,8 +160,9 @@ async def open_stop_order(client: AsyncServices,
     }
     if stop_order_type == StopOrderType.STOP_ORDER_TYPE_TAKE_PROFIT:
         parameters['take_profit_type'] = TakeProfitType.TAKE_PROFIT_TYPE_TRAILING
+        indent: Quotation = decimal_to_quotation(Decimal(s.config['take_profit']['trailing_indent']))
         trailing_data_parameters = {
-            'indent': Quotation(units=0, nano=3000000),
+            'indent': indent,
             'indent_type': 1,
             #     'spread': Quotation(units=0, nano=5000000),
             #     'spread_type': 2,

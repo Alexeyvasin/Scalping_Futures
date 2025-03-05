@@ -134,7 +134,7 @@ async def todays_candles_to_df() -> pd.DataFrame:
     return df
 
 
-async def get_data(bot:'ScalpingBot' = None) -> tuple:
+async def get_data(bot: 'ScalpingBot' = None) -> tuple:
     async with AsyncClient(TOKEN) as client:
         positions_task = client.operations.get_positions(account_id=ACCOUNT_ID)
         operations_task = client.operations.get_operations(account_id=ACCOUNT_ID)
@@ -144,9 +144,9 @@ async def get_data(bot:'ScalpingBot' = None) -> tuple:
         for operation in operations.operations:
             if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
                 s.logger.info(f'[get_data] Last operation {operation}')
-                s.logger.info(
-                    f'[get_data]. Price of last operation: '
-                    f'{quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))}')
+                # s.logger.info(
+                #     f'[get_data]. Price of last operation: '
+                #     f'{quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))}')
                 if bot:
                     bot.last_operations_price = float(
                         quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))
@@ -190,9 +190,11 @@ def is_trading_time():
 
 
 async def main():
-    positions, prices = await get_data()
+    positions, prices, stops = await get_data()
     pprint(positions)
     pprint(prices)
+    pprint(stops)
+
 
 if __name__ == '__main__':
     asyncio.run(main())

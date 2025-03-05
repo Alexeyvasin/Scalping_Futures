@@ -20,53 +20,16 @@ from tinkoff.invest import (
     CandleInstrument,
     SubscriptionInterval, AsyncClient,
 )
-from tinkoff.invest.market_data_stream.market_data_stream_manager import MarketDataStreamManager
 
 from utils import todays_candles_to_df, get_data, detect_min_incr, UID
 import orders
 import settings as s
 from subscribers import orders_subscriber, rsi_subscriber
 
-# ----------------------------------------------------------------
-# 1) Setup your "logs" folder and configure Python logging
-# ----------------------------------------------------------------
-# os.makedirs("logs", exist_ok=True)  # Create "logs" dir if not exists
-#
-# # Create a logger
-# logger = logging.getLogger("ScalpingBot")
-# logger.setLevel(logging.INFO)
-#
-# # TimedRotatingFileHandler rotates logs at midnight each day
-# log_file_path = "logs/scalping"  # base file name in logs/ folder
-# handler = TimedRotatingFileHandler(
-#     filename=log_file_path,
-#     when="midnight",
-#     interval=1,
-#     backupCount=7,  # keep last 7 log files (for example)
-#     encoding="utf-8",
-# )
-# # By default, the rotation creates files like "scalping.2025-01-30.log"
-# handler.suffix = "%Y-%m-%d.log"
-#
-# # Format logs: date-time, level, message
-# formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
-# handler.setFormatter(formatter)
-#
-# # (Optional) Also log to the console
-# console_handler = logging.StreamHandler()
-# console_handler.setLevel(logging.INFO)
-# console_handler.setFormatter(formatter)
-#
-# logger.addHandler(handler)
-# logger.addHandler(console_handler)
-
-# ----------------------------------------------------------------
 load_dotenv()
 
 TOKEN = getenv('TINKOFF_TOKEN')  # Токен с нужными правами (Full Access / торговые операции)
 ACCOUNT_ID = getenv('ACCOUNT_ID')  # Номер брокерского счёта
-# FIGI = s.config['tinkoff']['figi']  # FIGI фьючерса на IMOEX (уточните при необходимости)
-# UID = getenv('UID')
 
 COMMISSION_RATE = s.config['strategy']['commission_rate']  # Пример: 0.025% (round-turn => 0.0005)
 SPREAD_TICKS = s.config['strategy']['spread_ticks']  # Пример: 2 тика
@@ -149,7 +112,6 @@ class ScalpingBot:
         self.order_id = f"scalping_{now().timestamp()}_{direction}"
 
         request = PostOrderRequest(
-            # figi=self.figi,
             instrument_id=UID,
             quantity=self.lot_size,
             price=None,  # market order, if supported
@@ -195,7 +157,6 @@ class ScalpingBot:
 
         with Client(self.token) as client:
             request = PostOrderRequest(
-                # figi=self.figi,
                 instrument_id=UID,
                 quantity=self.lot_size,
                 price=None,
@@ -264,6 +225,7 @@ class ScalpingBot:
         self.stops = stops
         s.logger.info(f'[update_data] Future quantity = {futures_quantity}')
         s.logger.info(f'[update_data] Orders_prices =  {orders_prices}')
+        s.logger.info(f'[update_data] Last operation price = {self.last_operations_price}')
         for n, stop in enumerate(stops):
             direction = 'BUY' if stop.direction == 1 else 'SELL'
             stop_type = 'SL' if stop.order_type == 2 else 'TP'
@@ -490,8 +452,8 @@ class ScalpingBot:
 
     async def _generate_signal_and_trade(self):
         """Асинхронная логика генерации сигналов + исполнение сделок."""
-        print(f'*df')
-        print(self.df)
+        # print(f'*df')
+        # print(self.df)
 
         if detect_min_incr(self):
             logging.info(f'[_generate_signal_and_trade] not pass detect_min_incr')
@@ -536,21 +498,21 @@ class ScalpingBot:
                 prev_ema_fast > prev_ema_slow or pre_prev_ema_fast > pre_prev_ema_slow) and ema_fast < ema_slow and rsi_value > 25:
             short_signal = True
         quantity = s.config['strategy']['max_contracts']
-        print(f'*long_signal, short_signal = {long_signal}, {short_signal}')
+
         if long_signal:
             # await self.open_position(direction="LONG", current_price=close_price)# chatGPT
-            quantity = quantity - self.futures_quantity
-            if quantity <= 0:
-                direction = OrderDirection.ORDER_DIRECTION_BUY
-                s.logger.info(f'[_g_s_a_t]. Signal LONG. Order to buy')
-                await orders.open_position_with_stops(direction, quantity, self)
+            # quantity = quantity - self.futures_quantity
+            # if quantity > 0:
+            #     direction = OrderDirection.ORDER_DIRECTION_BUY
+            #     s.logger.info(f'[_g_s_a_t]. Signal LONG. Order to buy')
+                await orders.open_position_with_stops('long', self)
 
         elif short_signal:
-            quantity = quantity + self.futures_quantity
-            if quantity > 0:
-                direction = OrderDirection.ORDER_DIRECTION_SELL
-                s.logger.info(f'[_g_s_a_t]. Signal SHORT. Order to sell')
-                await orders.open_position_with_stops(direction, quantity, self)
+            # quantity = quantity + self.futures_quantity
+            # if quantity > 0:
+            #     direction = OrderDirection.ORDER_DIRECTION_SELL
+            #     s.logger.info(f'[_g_s_a_t]. Signal SHORT. Order to sell')
+                await orders.open_position_with_stops('short', self)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""
