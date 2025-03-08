@@ -14,9 +14,9 @@ strategy:
   lot_size: 1
   max_contracts: 1
   commission_rate: 0.00025
-  min_percent_for_interest: 0.2
+  min_percent_for_interest: 0.4
   spread_ticks: 2
-  stop_percent: 0.3
+  stop_percent: 0.5
 
 rsi:
   for_sell: 88
@@ -26,4 +26,4 @@ rsi:
     - 82
 
 take_profit:
-  trailing_indent: 0.004
+  trailing_indent: 0.005

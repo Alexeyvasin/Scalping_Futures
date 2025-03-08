@@ -34,13 +34,27 @@ console_handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.addHandler(console_handler)
 
+conf_file = 'config.yml'
+path = os.getcwd()
 
-def load_config(config_path="config.yml"):
+config_path = f'{path[:-8]}{conf_file}' if path.endswith('my_utils') else conf_file
+
+
+def load_config(config_path=config_path):
+    # try:
     with open(config_path, "r") as file:
         return yaml.safe_load(file)
+    # except FileNotFoundError as exc:
+    #     path = os.getcwd()
+    #     if path.endswith('my_utils'):
+    #         config_path = f'{path[:-8]}config.yml'
+    #         print(config_path)
+    #         with open(config_path, "r") as file:
+    #             return yaml.safe_load(file)
+    #     print(os.getcwd())
 
 
-config = load_config("config.yml")
+config = load_config(config_path)
 
 order_event = aio.Event()
 

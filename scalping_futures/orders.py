@@ -94,14 +94,13 @@ async def open_position_with_stops(signal,
             s.logger.info(f'[o_p_w_s]. direction is {direction}. quantity == {quantity}. return')
             return
 
-
         if bot.futures_quantity:
-            differ = abs(bot.last_operations_price - bot.df['close'].iloc[-1]) * 100 / bot.last_operations_price
+            differ = abs(bot.last_deal_price - bot.df['close'].iloc[-1]) * 100 / bot.last_deal_price
             if differ < s.config['strategy']['min_percent_for_interest']:
                 s.logger.info(f'[o_p_w_s] cannot be executed. differ is too little: {differ}')
                 return
             else:
-                s.logger.info(f'[o_p_w_s] Differ is norm! Passed it! last_op_price = {bot.last_operations_price}. '
+                s.logger.info(f'[o_p_w_s] Differ is norm! Passed it! last_op_price = {bot.last_deal_price}. '
                               f'price_now = {bot.df['close'].iloc[-1]}')
 
         if direction == OrderDirection.ORDER_DIRECTION_BUY:
@@ -120,12 +119,12 @@ async def open_position_with_stops(signal,
 
         resp = await open_position(direction=direction, quantity=quantity)
         s.logger.info(f'[o_p_w_s] {resp}')
-        await aio.sleep(5)
-        await bot.update_data()
+        await aio.sleep(20)
+        # await bot.update_data()
         stop_resp = await post_stop_orders(bot)
         if stop_resp is not None:
             s.logger.info(f'[o_p_w_s] stop_orders are applied.\n {stop_resp}')
-        await aio.sleep(120)
+        await aio.sleep(100)
         s.logger.info(f'[o_p_w_s] E---------------------------------')
 
 
@@ -214,8 +213,8 @@ async def post_stop_orders(bot) -> tuple[PostStopOrderResponse, PostStopOrderRes
         quantity = abs(bot.futures_quantity)
         direction_for_stop = StopOrderDirection.STOP_ORDER_DIRECTION_BUY \
             if bot.futures_quantity < 0 else StopOrderDirection.STOP_ORDER_DIRECTION_SELL
-
-        take_profit_price_q, stop_loss_price_q = change_quotation(bot.order_prices[0])
+        await bot.update_data()
+        take_profit_price_q, stop_loss_price_q = change_quotation(bot.last_deal_price)
         if direction_for_stop == 1:
             take_profit_price_q, stop_loss_price_q = stop_loss_price_q, take_profit_price_q
 

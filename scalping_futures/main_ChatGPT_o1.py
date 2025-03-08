@@ -57,8 +57,9 @@ class ScalpingBot:
         self.last_signal = None
         self.futures_quantity = None
         self.order_prices = None
-        self.last_operations_price = None
+        # self.last_operations_price = None
         self.stops = None
+        self.last_deal_price = None  # price of last deal
 
         # Параметры индикаторов
         self.ema_fast_period = s.config['strategy']['ema_fast_period']
@@ -219,13 +220,14 @@ class ScalpingBot:
     # ----------------------------------------------------------
 
     async def update_data(self):
-        futures_quantity, orders_prices, stops = await get_data(self)
-        self.futures_quantity = futures_quantity
+        futures_quantity, orders_prices, stops, opens_positions = await get_data(self)
+        self.futures_quantity = 0 if not opens_positions else opens_positions[0]['balance']
+        self.last_deal_price = None if not opens_positions else opens_positions[0]['operation'].price
         self.order_prices = orders_prices
         self.stops = stops
         s.logger.info(f'[update_data] Future quantity = {futures_quantity}')
         s.logger.info(f'[update_data] Orders_prices =  {orders_prices}')
-        s.logger.info(f'[update_data] Last operation price = {self.last_operations_price}')
+        s.logger.info(f'[update_data] Last deal price = {self.last_deal_price}')
         for n, stop in enumerate(stops):
             direction = 'BUY' if stop.direction == 1 else 'SELL'
             stop_type = 'SL' if stop.order_type == 2 else 'TP'
@@ -507,14 +509,14 @@ class ScalpingBot:
             # if quantity > 0:
             #     direction = OrderDirection.ORDER_DIRECTION_BUY
             #     s.logger.info(f'[_g_s_a_t]. Signal LONG. Order to buy')
-                await orders.open_position_with_stops('long', self)
+            await orders.open_position_with_stops('long', self)
 
         elif short_signal:
             # quantity = quantity + self.futures_quantity
             # if quantity > 0:
             #     direction = OrderDirection.ORDER_DIRECTION_SELL
             #     s.logger.info(f'[_g_s_a_t]. Signal SHORT. Order to sell')
-                await orders.open_position_with_stops('short', self)
+            await orders.open_position_with_stops('short', self)
 
     def _update_stop_loss(self):
         """Простейший трейлинг-стоп (синхронно, вызывается в streaming thread)."""

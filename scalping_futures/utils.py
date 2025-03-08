@@ -14,14 +14,21 @@ from tinkoff.invest import (
 from tinkoff.invest.async_services import AsyncServices
 from tinkoff.invest.utils import now, quotation_to_decimal
 from tinkoff.invest.services import CandleInterval
-from settings import config
+
+try:
+    from settings import config
+except:
+    from .settings import config
 
 try:
     from main_ChatGPT_o1 import ScalpingBot
 except ImportError:
     pass
 
-import settings as s
+try:
+    import settings as s
+except:
+    from . import settings as s
 
 load_dotenv()
 
@@ -141,25 +148,41 @@ async def get_data(bot: 'ScalpingBot' = None) -> tuple:
         stops_task = client.stop_orders.get_stop_orders(account_id=ACCOUNT_ID)
 
         positions, operations, stops = await asyncio.gather(positions_task, operations_task, stops_task)
+    for operation in operations.operations:
+        if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
+            s.logger.info(f'[get_data] Last operation {operation}')
+            # s.logger.info(
+            #     f'[get_data]. Price of last operation: '
+            #     f'{quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))}')
+            if bot:
+                bot.last_operations_price = float(
+                    quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))
+                )
+            break
+    futures_quantity = 0 if not positions.futures else positions.futures[0].balance
+    orders_prices = []
+    for operation in operations.operations:
+        if len(orders_prices) >= abs(futures_quantity):
+            break
+        if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
+            orders_prices.append(operation.price)
+
+    opens_positions = []
+    for position in positions.futures:
         for operation in operations.operations:
-            if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
-                s.logger.info(f'[get_data] Last operation {operation}')
-                # s.logger.info(
-                #     f'[get_data]. Price of last operation: '
-                #     f'{quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))}')
-                if bot:
-                    bot.last_operations_price = float(
-                        quotation_to_decimal(Quotation(units=operation.price.units, nano=operation.price.nano))
-                    )
+            if position.position_uid == operation.position_uid and \
+                    operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
+                opens_positions.append(
+                    {
+                        'uid': position.instrument_uid,
+                        'position_uid': position.position_uid,
+                        'balance': position.balance,
+                        'operation': operation,
+                    }
+                )
                 break
-        futures_quantity = 0 if not positions.futures else positions.futures[0].balance
-        orders_prices = []
-        for operation in operations.operations:
-            if len(orders_prices) >= abs(futures_quantity):
-                break
-            if operation.operation_type in (OperationType.OPERATION_TYPE_BUY, OperationType.OPERATION_TYPE_SELL):
-                orders_prices.append(operation.price)
-        return futures_quantity, tuple(orders_prices), stops.stop_orders
+
+    return futures_quantity, tuple(orders_prices), stops.stop_orders, opens_positions
 
 
 def detect_min_incr(bot: 'ScalpingBot') -> bool:
@@ -190,10 +213,11 @@ def is_trading_time():
 
 
 async def main():
-    positions, prices, stops = await get_data()
+    positions, prices, stops, opens_positions = await get_data()
     pprint(positions)
     pprint(prices)
     pprint(stops)
+    pprint(opens_positions)
 
 
 if __name__ == '__main__':
