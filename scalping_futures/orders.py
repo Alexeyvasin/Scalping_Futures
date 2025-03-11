@@ -17,7 +17,7 @@ from tinkoff.invest import (
 )
 from tinkoff.invest.schemas import OrderStateStreamRequest, GetStopOrdersResponse, StopOrderExpirationType
 from tinkoff.invest.async_services import AsyncServices, PostOrderAsyncRequest
-from tinkoff.invest.utils import now, decimal_to_quotation
+from tinkoff.invest.utils import now, decimal_to_quotation, quotation_to_decimal
 
 from utils import TOKEN, ACCOUNT_ID, UID, change_quotation
 import settings as s
@@ -95,7 +95,7 @@ async def open_position_with_stops(signal,
             return
 
         if bot.futures_quantity:
-            differ = abs(bot.last_deal_price - bot.df['close'].iloc[-1]) * 100 / bot.last_deal_price
+            differ = abs(float(quotation_to_decimal(bot.last_deal_price)) - bot.df['close'].iloc[-1]) * 100 / float(quotation_to_decimal(bot.last_deal_price))
             if differ < s.config['strategy']['min_percent_for_interest']:
                 s.logger.info(f'[o_p_w_s] cannot be executed. differ is too little: {differ}')
                 return

@@ -489,19 +489,16 @@ class ScalpingBot:
         pre_prev_row = self.df.iloc[-3]
         prev_ema_fast = prev_row["EMA_fast"]
         prev_ema_slow = prev_row["EMA_slow"]
-        pre_prev_ema_fast = pre_prev_row['EMA_fast']
-        pre_prev_ema_slow = pre_prev_row['EMA_slow']
+        # pre_prev_ema_fast = pre_prev_row['EMA_fast']
+        # pre_prev_ema_slow = pre_prev_row['EMA_slow']
 
         # Detect signals
         long_signal = False
         short_signal = False
-        if (
-                prev_ema_fast < prev_ema_slow or pre_prev_ema_fast < pre_prev_ema_slow) and ema_fast > ema_slow and rsi_value < 75:
+        if prev_ema_fast < prev_ema_slow  and ema_fast > ema_slow and rsi_value < 75:
             long_signal = True
-        elif (
-                prev_ema_fast > prev_ema_slow or pre_prev_ema_fast > pre_prev_ema_slow) and ema_fast < ema_slow and rsi_value > 25:
+        elif prev_ema_fast > prev_ema_slow and ema_fast < ema_slow and rsi_value > 25:
             short_signal = True
-        quantity = s.config['strategy']['max_contracts']
 
         if long_signal:
             # await self.open_position(direction="LONG", current_price=close_price)# chatGPT

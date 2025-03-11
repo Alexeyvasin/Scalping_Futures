@@ -19,8 +19,8 @@ strategy:
   stop_percent: 0.5
 
 rsi:
-  for_sell: 88
-  for_buy: 12
+  for_sell: 93
+  for_buy: 7
   for_close:
     - 18
     - 82
