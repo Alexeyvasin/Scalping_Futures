@@ -1,16 +1,29 @@
-# Please install OpenAI SDK first: `pip3 install openai`
+# # Please install OpenAI SDK first: `pip3 install openai`
+#
+# from openai import OpenAI
+#
+# client = OpenAI(api_key="sk-d30c72a9ce994731bcc1d69b4684b1f4", base_url="https://api.deepseek.com")
+#
+# response = client.chat.completions.create(
+#     model="deepseek-chat",
+#     messages=[
+#         {"role": "system", "content": "Hi! Tell me some joke please."},
+#         {"role": "user", "content": "Hello"},
+#     ],
+#     stream=False
+# )
+#
+# print(response.choices[0].message.content)
 
-from openai import OpenAI
+#AIzaSyBaiCGjigrTRUSq_Fa8onfhCsa5xECP6G8
 
-client = OpenAI(api_key="sk-d30c72a9ce994731bcc1d69b4684b1f4", base_url="https://api.deepseek.com")
+from google import genai
 
-response = client.chat.completions.create(
-    model="deepseek-chat",
-    messages=[
-        {"role": "system", "content": "Hi! Tell me some joke please."},
-        {"role": "user", "content": "Hello"},
-    ],
-    stream=False
+client = genai.Client(api_key="AIzaSyBaiCGjigrTRUSq_Fa8onfhCsa5xECP6G8")
+
+response = client.models.generate_content(
+    model="gemini-2.0-flash",
+    contents="Explain how AI works",
 )
 
-print(response.choices[0].message.content)
+print(response.text)
